@@ -7,8 +7,8 @@ const TripModelSchema = new mongoose.Schema({
   date: Date,
   genderPreference: String,
   blind: Boolean,
-//   creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-//   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 const TripModel = mongoose.model('Trip',TripModelSchema);
