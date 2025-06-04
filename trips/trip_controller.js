@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const TripModel = require("../models/trip.js");
+const TripModel = require("./trip_model.js");
 
 async function createTrip(req, res) {
   try {
