@@ -1,0 +1,88 @@
+/* ---
+============================================================
+  Styles for the Trip Detail Component
+============================================================
+--- */
+
+/* --- Back Link --- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem; /* Space between icon and text */
+  font-weight: 600;
+  color: #4a5568; /* A darker gray for text */
+  text-decoration: none;
+  margin-bottom: 2rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease-in-out;
+}
+
+.back-link:hover {
+  background-color: #f7fafc; /* A very light gray on hover */
+  border-color: #cbd5e0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* --- Main Detail Card --- */
+.trip-detail-card {
+  background-color: #fff;
+  border-radius: 16px; /* Softer, larger rounded corners */
+  overflow: hidden; /* This is crucial to make the image corners rounded */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07), 0 6px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Detail Image --- */
+.trip-detail-image {
+  width: 100%;
+  height: 400px; /* A taller, more prominent image */
+  object-fit: cover; /* Ensures the image covers the area without distortion */
+  display: block; /* Removes any extra space below the image */
+}
+
+/* --- Detail Content Area --- */
+.trip-detail-content {
+  padding: 2.5rem 3rem; /* Generous padding for a premium feel */
+}
+
+/* --- Title --- */
+.trip-detail-title {
+  font-size: 2.75rem; /* Large, impactful title */
+  font-weight: 700;
+  margin: 0 0 0.5rem 0; /* Reset margin */
+  color: #1a202c; /* Very dark gray, almost black */
+  line-height: 1.2;
+}
+
+/* --- Location Subtitle --- */
+.trip-detail-location {
+  font-size: 1.25rem;
+  color: #718096; /* A muted gray for the subtitle */
+  margin-bottom: 2rem; /* Space between location and description */
+}
+
+/* --- Description Text --- */
+.trip-detail-description {
+  font-size: 1.1rem;
+  line-height: 1.7; /* Increased line height for excellent readability */
+  color: #4a5568; /* A comfortable reading color */
+}
+
+/* --- Reusable Loading/Error States --- */
+/* It's good practice for a component's CSS to be self-contained */
+.loading-container, .error-container {
+  text-align: center;
+  padding: 4rem 1rem;
+  font-size: 1.2rem;
+  color: #718096;
+}
+
+.error-container {
+  color: #e53e3e;
+  background-color: #fff5f5;
+  border: 1px solid #f56565;
+  border-radius: 8px;
+}

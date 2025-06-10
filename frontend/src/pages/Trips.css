@@ -1,0 +1,211 @@
+/* --- General Setup & Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  background-color: #f8f9fa;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+
+.trips-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* --- Header --- */
+.page-header {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #1a202c;
+  text-align: center;
+}
+
+.page-subheader {
+  text-align: center;
+  font-size: 1.125rem;
+  color: #718096;
+  margin-bottom: 2.5rem;
+}
+
+/* --- Add Trip Form --- */
+.add-trip-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-bottom: 2rem;
+}
+
+.add-trip-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.add-trip-form button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-trip-form button:hover {
+  background-color: #1d4ed8;
+}
+
+/* --- Scrollable Container for the Trips Grid --- */
+.trips-scroll-container {
+  max-height: 70vh; /* Sets a max height (70% of screen height) */
+  overflow-y: auto; /* Adds a vertical scrollbar ONLY when content overflows */
+  padding-right: 1rem; /* Space for the scrollbar to prevent content overlap */
+  padding-bottom: 2rem; /* Space at the bottom of the list */
+}
+
+/* --- Trips Grid & Cards --- */
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  list-style-type: none;
+  padding: 0;
+}
+
+/* --- Removes underline from card links --- */
+.card-link-wrapper {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.trip-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.trip-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-image-container {
+  position: relative;
+}
+
+.trip-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.bookable-tag {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background-color: #48bb78;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.card-content {
+  padding: 1rem 1.25rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.card-rating .fa-star {
+  color: #f6ad55;
+}
+
+.card-location {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-bottom: 0.75rem;
+}
+
+.card-description {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.card-icons {
+  display: flex;
+  gap: 1rem;
+  color: #718096;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+/* --- Loading / Error / Empty States --- */
+.loading-container, .error-container, .no-trips-message {
+  text-align: center;
+  padding: 4rem 1rem;
+  font-size: 1.2rem;
+  color: #718096;
+}
+
+.error-container {
+  color: #e53e3e;
+  background-color: #fff5f5;
+  border: 1px solid #f56565;
+  border-radius: 8px;
+}
+
+/* --- Custom Scrollbar (Optional but recommended) --- */
+.trips-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trips-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.trips-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.trips-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
