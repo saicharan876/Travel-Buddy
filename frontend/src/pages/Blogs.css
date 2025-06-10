@@ -1,0 +1,129 @@
+/* Container spacing to avoid overlapping with fixed navbar */
+.blogs-container {
+  padding: 100px 20px 40px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Page title */
+.blogs-title {
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  color: #1c92d2;
+  margin-bottom: 30px;
+}
+
+/* Blog submission form */
+.blog-form {
+  background: #ffffff;
+  padding: 25px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+}
+
+.blog-form h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.blog-form input,
+.blog-form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.blog-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.blog-form button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #1c92d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.blog-form button:hover {
+  background-color: #136fa4;
+}
+
+/* Blog list container */
+.blog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Blog card */
+.blog-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.blog-card h4 {
+  font-size: 22px;
+  font-weight: bold;
+  color: #1c92d2;
+  margin-bottom: 10px;
+}
+
+.blog-card p {
+  font-size: 16px;
+  color: #444;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* Messages */
+.loading-message,
+.error-message,
+.form-error {
+  text-align: center;
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.loading-message {
+  background-color: #f0f8ff;
+  color: #1c92d2;
+}
+
+.error-message,
+.form-error {
+  background-color: #fcdede;
+  color: #b00020;
+}
+.blog-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  object-fit: cover;
+  max-height: 300px; /* optional: limit height */
+}
