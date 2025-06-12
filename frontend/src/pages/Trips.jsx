@@ -1,115 +1,171 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom';
 import axios from 'axios';
-import './Trips.css'; // The CSS file we'll create next
+import './Trips.css';
+import TripCardImage from './TripCardImage';
+
+const TABS = [
+  { id: '/', label: 'All Trips' },
+  { id: 'college', label: 'College Trips' },
+  { id: 'location', label: 'By Location' },
+  { id: 'blind', label: 'Blind Trips' },
+  { id: 'create', label: 'Create Trip' },
+];
 
 export default function Trips() {
-  // State for storing the list of trips from the backend
   const [trips, setTrips] = useState([]);
-  // State for managing the form inputs
   const [form, setForm] = useState({ destination: '', description: '', location: '' });
-  // State to handle loading and error UI
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // A ref for the grid (can be used for other purposes if needed)
   const tripsGridRef = useRef(null);
+  const [activeTab, setActiveTab] = useState(TABS[0].id);
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchCollege, setSearchCollege] = useState('');
 
-  // Fetch initial data from the backend when the component loads
   useEffect(() => {
-    // Note: Using your updated backend route /trip
-    axios.get('http://localhost:5000/trip')
-      .then(res => {
-        setTrips(res.data);
-      })
-      .catch(err => {
-        console.error("Error fetching trips:", err);
-        setError("Failed to load venues. Please ensure the backend server is running.");
-      })
-      .finally(() => {
-        setLoading(false); // Hide loading message regardless of success or error
-      });
-  }, []); // The empty array ensures this effect runs only once
+    if (activeTab === 'create') return;
 
-  // Update form state as the user types
+    setLoading(true);
+    setError(null);
+
+    let apiUrl = 'http://localhost:5000/trip';
+
+    if (activeTab === 'location' && searchLocation.trim()) {
+      apiUrl += `?location=${encodeURIComponent(searchLocation)}`;
+    } else if (activeTab === 'college' && searchCollege.trim()) {
+      apiUrl += `/college?college=${encodeURIComponent(searchCollege)}`;
+    } else if (activeTab !== '/' && !['location','college'].includes(activeTab)) {
+      apiUrl += `/${activeTab}`;
+    }
+
+    axios.get(apiUrl)
+      .then(res => setTrips(res.data))
+      .catch(() => {
+        const label = TABS.find(t => t.id === activeTab)?.label || 'this category';
+        setError(`Failed to load trips for ${label}.`);
+        setTrips([]);
+      })
+      .finally(() => setLoading(false));
+  }, [activeTab, searchLocation, searchCollege]);
+
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // Handle the form submission to create a new trip
   const handleSubmit = e => {
     e.preventDefault();
-    // Note: Using your updated backend route /trip/create
     axios.post('http://localhost:5000/trip/create', form)
       .then(res => {
-        // Add the new trip to the top of the list for instant UI feedback
-        setTrips(prevTrips => [res.data.trip, ...prevTrips]);
-        // Clear the form fields
+        setTrips(prev => [res.data.trip, ...prev]);
         setForm({ destination: '', description: '', location: '' });
+        setActiveTab('/'); // back to all
       })
-      .catch(err => {
-        console.error("Failed to add trip:", err);
-        alert("Could not add the venue. Please check the console for errors.");
-      });
+      .catch(() => alert('Could not add trip.'));
   };
 
-  // Show a loading message while fetching data
-  if (loading) {
-    return <div className="loading-container">Loading Venues...</div>;
-  }
+  const handleLocationSearch = e => {
+    e.preventDefault();
+    setSearchLocation(form.location);
+  };
 
-  // Show an error message if the fetch failed
-  if (error) {
-    return <div className="error-container">{error}</div>;
-  }
+  const handleCollegeSearch = e => {
+    e.preventDefault();
+    setSearchCollege(form.location);
+  };
 
   return (
     <div className="trips-page-container">
-      <h1 className="page-header">Available Venues</h1>
-      <p className="page-subheader">Discover and book amazing places for your next trip.</p>
+      <div className="tabs-container">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab(tab.id);
+              if (tab.id !== 'location') setSearchLocation('');
+              if (tab.id !== 'college') setSearchCollege('');
+            }}
+          >
+            {tab.label} {activeTab === tab.id ? `(${trips.length})` : null}
+          </button>
+        ))}
+      </div>
 
-      {/* Form for adding new venues */}
-      <form onSubmit={handleSubmit} className="add-trip-form">
-        <input name="destination" value={form.destination} placeholder="Venue Name (e.g., The Street)" onChange={handleChange} required />
-        <input name="location" value={form.location} placeholder="Location (e.g., Hanumakonda, ~1.0 km)" onChange={handleChange} required />
-        <input name="description" value={form.description} placeholder="A short description..." onChange={handleChange} required />
-        <button type="submit">Add Venue</button>
-      </form>
+      {/* CREATE FORM */}
+      {activeTab === 'create' && (
+        <form onSubmit={handleSubmit} className="add-trip-form">
+          <input name="destination" value={form.destination} placeholder="Venue Name" onChange={handleChange} required />
+          <input name="location" value={form.location} placeholder="Location" onChange={handleChange} required />
+          <input name="description" value={form.description} placeholder="Description" onChange={handleChange} required />
+          <button type="submit">Create Trip</button>
+        </form>
+      )}
 
-      {/* This container will hold the grid and have its own scrollbar */}
-      <div className="trips-scroll-container">
-        {trips.length === 0 ? (
-          // Message shown inside the scroll container if there are no trips
-          <p className="no-trips-message">No venues found. Add one using the form above!</p>
-        ) : (
-          <ul ref={tripsGridRef} className="trips-grid">
-            {trips.map(trip => (
-              <Link to={`/trips/${trip._id}`} key={trip._id} className="card-link-wrapper">
-                <li className="trip-card">
-                  <div className="card-image-container">
-                    <img src={`https://picsum.photos/seed/${trip.location}/400/200`} alt={trip.destination} />
-                    <div className="bookable-tag">Bookable</div>
-                  </div>
-                  <div className="card-content">
-                    <div className="card-header">
-                      <h3 className="card-title">{trip.destination}</h3>
-                      <div className="card-rating">
-                        <i className="fas fa-star"></i>
-                        <span>4.8 (12)</span>
+      {/* SEARCH FORMS */}
+      {activeTab === 'location' && (
+        <form onSubmit={handleLocationSearch} className="location-filter-form">
+          <input
+            type="text"
+            name="location"
+            value={form.location}
+            onChange={handleChange}
+            placeholder="Enter location"
+            required
+          />
+          <button type="submit">Search</button>
+        </form>
+      )}
+      {activeTab === 'college' && (
+        <form onSubmit={handleCollegeSearch} className="location-filter-form">
+          <input
+            type="text"
+            name="location"
+            value={form.location}
+            onChange={handleChange}
+            placeholder="Enter college"
+            required
+          />
+          <button type="submit">Search</button>
+        </form>
+      )}
+
+      {/* TRIP CARDS */}
+      {activeTab !== 'create' && (
+        <div className="trips-scroll-container">
+          {loading ? (
+            <div className="loading-container">Loading...</div>
+          ) : error ? (
+            <div className="error-container">{error}</div>
+          ) : trips.length === 0 ? (
+            <p className="no-trips-message">No trips found.</p>
+          ) : (
+            <ul ref={tripsGridRef} className="trips-grid">
+              {trips.map(trip => (
+                <Link to={`/trip/${trip._id}`} key={trip._id} className="card-link-wrapper">
+                  <li className="trip-card">
+                    <div className="card-image-container">
+                      <TripCardImage query={trip.destination} altText={trip.destination} />
+                      <div className="bookable-tag">Bookable</div>
+                    </div>
+                    <div className="card-content">
+                      <div className="card-header">
+                        <h3 className="card-title">{trip.destination}</h3>
+                        <div className="card-rating">
+                          <i className="fas fa-star" /> 4.8
+                        </div>
+                      </div>
+                      <p className="card-location">{trip.location}</p>
+                      <p className="card-description">{trip.description}</p>
+                      <div className="card-icons">
+                        <i className="fa-solid fa-table-tennis-paddle-ball" />
+                        <i className="fa-solid fa-person-swimming" />
                       </div>
                     </div>
-                    <p className="card-location">{trip.location}</p>
-                    <p className="card-description">{trip.description}</p>
-                    <div className="card-icons">
-                      <i className="fa-solid fa-table-tennis-paddle-ball" title="Table Tennis"></i>
-                      <i className="fa-solid fa-person-swimming" title="Swimming"></i>
-                      <span>+ 2 more</span>
-                    </div>
-                  </div>
-                </li>
-              </Link>
-            ))}
-          </ul>
-        )}
-      </div>
+                  </li>
+                </Link>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }

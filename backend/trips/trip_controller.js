@@ -5,11 +5,12 @@ const TripModel = require("./trip_model.js");
 
 const SECRET = "!@#$%^&*()";
 
+// Create a new trip
 async function createTrip(req, res) {
   try {
+    // Optional JWT logic for authentication
     // const token = req.header("Authorization")?.split(" ")[1];
     // if (!token) return res.status(401).json({ message: "Token missing" });
-
     // const decoded = jwt.verify(token, SECRET);
 
     const body = req.body;
@@ -30,8 +31,7 @@ async function createTrip(req, res) {
       message: "Trip created successfully",
       trip,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Error creating trip:", error.message);
     return res.status(500).json({
       message: "Failed to create trip",
@@ -40,11 +40,11 @@ async function createTrip(req, res) {
   }
 }
 
+// Get a single trip by ID
 async function getTripById(req, res) {
   try {
     const tripId = req.params.id;
 
-    // Validate the trip ID
     if (!mongoose.Types.ObjectId.isValid(tripId)) {
       return res.status(400).json({ message: "Invalid trip ID" });
     }
@@ -75,9 +75,17 @@ async function getTripById(req, res) {
   }
 }
 
+// Route: GET /trip — All Trips or by ?location=XYZ
 async function TripMainPage(req, res) {
   try {
-    const trips = await TripModel.find({});
+    const { location } = req.query;
+
+    const query = {};
+    if (location) {
+      query.location = location;
+    }
+
+    const trips = await TripModel.find(query);
     return res.status(200).json(trips);
   } catch (error) {
     console.error("Error fetching trips:", error.message);
@@ -88,13 +96,10 @@ async function TripMainPage(req, res) {
   }
 }
 
-// in user and trip model, add college and location fields
-
+// Route: GET /trip/college?college=XYZ
 async function TripCollegePage(req, res) {
   try {
-    // const { college } = req.query;
-    //For Testing purposes, 
-    const college = req.body.college;
+    const { college } = req.query;
 
     const selectedCollege = college || req.user?.college;
 
@@ -106,19 +111,18 @@ async function TripCollegePage(req, res) {
     const trips = await TripModel.find(query);
     return res.status(200).json(trips);
   } catch (error) {
-    console.error("Error fetching trips:", error.message);
+    console.error("Error fetching college trips:", error.message);
     return res.status(500).json({
-      message: "Failed to fetch trips",
+      message: "Failed to fetch college trips",
       error: error.message,
     });
   }
 }
 
+// Route: GET /trip/location?location=XYZ
 async function TripLocationPage(req, res) {
   try {
-    // const { location } = req.query;
-    // For Testing purposes,
-    const location = req.body.location;
+    const { location } = req.query;
 
     const selectedLocation = location || req.user?.location;
 
@@ -130,14 +134,15 @@ async function TripLocationPage(req, res) {
     const trips = await TripModel.find(query);
     return res.status(200).json(trips);
   } catch (error) {
-    console.error("Error fetching trips:", error.message);
+    console.error("Error fetching location trips:", error.message);
     return res.status(500).json({
-      message: "Failed to fetch trips",
+      message: "Failed to fetch trips by location",
       error: error.message,
     });
   }
 }
 
+// Route: GET /trip/blind
 async function BlindTrips(req, res) {
   try {
     const blindTrips = await TripModel.find({ blind: true });
@@ -146,13 +151,12 @@ async function BlindTrips(req, res) {
       return res.status(404).json({ message: "No blind trips found" });
     }
 
-    
     const tripList = blindTrips.map(trip => ({
       _id: trip._id,
       destination: trip.destination,
       date: trip.date,
       blind: true,
-      description: trip.description, 
+      description: trip.description,
     }));
 
     return res.status(200).json(tripList);
@@ -165,5 +169,11 @@ async function BlindTrips(req, res) {
   }
 }
 
-
-module.exports = { createTrip, getTripById, TripMainPage, TripLocationPage, TripCollegePage, BlindTrips };
+module.exports = {
+  createTrip,
+  getTripById,
+  TripMainPage,
+  TripCollegePage,
+  TripLocationPage,
+  BlindTrips,
+};

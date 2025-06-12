@@ -1,145 +1,222 @@
-/* --- General Setup & Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Global Variables & Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #ff5a5f;
+  --secondary-color: #00a699;
+  --accent-color: #fc642d;
+  --bg-light: #f7f7f7;
+  --bg-white: #ffffff;
+  --text-dark: #333333;
+  --text-muted: #777777;
+  --shadow-light: rgba(0, 0, 0, 0.05);
+  --shadow-dark: rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
 
 body {
-  background-color: #f8f9fa;
-  font-family: 'Inter', sans-serif;
-  color: #333;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  overflow-y: auto;
 }
 
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 5px;
+  border: 2px solid var(--bg-light);
+}
+
+/* Container */
 .trips-page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+  max-width: 1280px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
-/* --- Header --- */
-.page-header {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #1a202c;
-  text-align: center;
-}
-
-.page-subheader {
-  text-align: center;
-  font-size: 1.125rem;
-  color: #718096;
-  margin-bottom: 2.5rem;
-}
-
-/* --- Add Trip Form --- */
-.add-trip-form {
+/* Tabs */
+.tabs-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1.5rem;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  justify-content: center;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.add-trip-form input {
-  flex: 1;
-  min-width: 200px;
-  padding: 0.75rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
+.tab-button {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
   font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.tab-button:hover,
+.tab-button.active {
+  color: var(--primary-color);
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 2px;
+}
+
+/* Create Trip Form */
+.add-trip-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow-light);
+  margin-bottom: 2rem;
+}
+
+.add-trip-form input,
+.add-trip-form button {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s;
+}
+
+.add-trip-form input:focus {
+  border-color: var(--secondary-color);
+  outline: none;
 }
 
 .add-trip-form button {
-  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: var(--bg-white);
   border: none;
-  background-color: #2563eb;
-  color: white;
   font-weight: 600;
-  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 .add-trip-form button:hover {
-  background-color: #1d4ed8;
+  background: var(--accent-color);
 }
 
-/* --- Scrollable Container for the Trips Grid --- */
+/* Search Forms for Location & College */
+.location-filter-form {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.location-filter-form input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d1d1;
+  border-radius: 8px;
+  width: 250px;
+}
+
+.location-filter-form button {
+  padding: 0.75rem 1.5rem;
+  background: var(--secondary-color);
+  color: var(--bg-white);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.location-filter-form button:hover {
+  background: var(--accent-color);
+}
+
+/* Trips List */
 .trips-scroll-container {
-  max-height: 70vh; /* Sets a max height (70% of screen height) */
-  overflow-y: auto; /* Adds a vertical scrollbar ONLY when content overflows */
-  padding-right: 1rem; /* Space for the scrollbar to prevent content overlap */
-  padding-bottom: 2rem; /* Space at the bottom of the list */
+  max-height: 72vh;
+  overflow-y: auto;
+  padding-right: 1rem;
 }
 
-/* --- Trips Grid & Cards --- */
 .trips-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
-  list-style-type: none;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
   padding: 0;
 }
 
-/* --- Removes underline from card links --- */
-.card-link-wrapper {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-
 .trip-card {
-  background-color: #ffffff;
+  background: var(--bg-white);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  box-shadow: 0 6px 20px var(--shadow-light);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .trip-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 36px var(--shadow-dark);
 }
 
 .card-image-container {
   position: relative;
 }
 
-.trip-card img {
+.card-image-container img,
+.image-loading-placeholder {
   width: 100%;
-  height: 180px;
+  height: 200px;
   object-fit: cover;
-  display: block;
 }
 
 .bookable-tag {
   position: absolute;
-  bottom: 12px;
+  top: 12px;
   right: 12px;
-  background-color: #48bb78;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  background: var(--secondary-color);
+  color: var(--bg-white);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .card-content {
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.25rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2d3748;
 }
 
 .card-rating {
@@ -147,65 +224,46 @@ body {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.9rem;
-  color: #4a5568;
-  white-space: nowrap;
+  color: var(--text-muted);
 }
 
 .card-rating .fa-star {
-  color: #f6ad55;
+  color: #ffc107;
 }
 
 .card-location {
   font-size: 0.9rem;
-  color: #718096;
-  margin-bottom: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
 .card-description {
   font-size: 0.9rem;
-  color: #4a5568;
+  color: var(--text-muted);
   margin-bottom: 1rem;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .card-icons {
   display: flex;
-  gap: 1rem;
-  color: #718096;
-  align-items: center;
-  font-size: 0.9rem;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 1rem;
 }
 
-/* --- Loading / Error / Empty States --- */
-.loading-container, .error-container, .no-trips-message {
+/* Loading, Error, Empty States */
+.loading-container,
+.error-container,
+.no-trips-message {
   text-align: center;
-  padding: 4rem 1rem;
-  font-size: 1.2rem;
-  color: #718096;
+  padding: 3rem 1rem;
+  font-size: 1.1rem;
+  color: var(--text-muted);
 }
 
 .error-container {
-  color: #e53e3e;
-  background-color: #fff5f5;
-  border: 1px solid #f56565;
+  background: #ffe8e8;
+  border: 1px solid #ff5a5f;
+  color: #c53030;
   border-radius: 8px;
-}
-
-/* --- Custom Scrollbar (Optional but recommended) --- */
-.trips-scroll-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.trips-scroll-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.trips-scroll-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.trips-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }

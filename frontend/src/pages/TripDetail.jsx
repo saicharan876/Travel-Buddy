@@ -1,71 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
-// We'll create a dedicated CSS file to avoid conflicts
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+import TripCardImage from './TripCardImage';
 import './TripDetail.css'; 
 
 export default function TripDetail() {
+  const { id } = useParams();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Store the actual error message for display
-  const [error, setError] = useState('');
-
-  const { id } = useParams();
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Make sure your backend route matches this exactly!
-    axios.get(`http://localhost:5000/trip/${id}`)
-      .then(res => {
+    axios
+      .get(`http://localhost:5000/trip/${id}`)
+      .then((res) => {
         setTrip(res.data);
+        setError(null);
       })
-      .catch(err => {
-        console.error("Error fetching trip details:", err);
-        // Set a more descriptive error message
-        if (err.response && err.response.status === 404) {
-          setError("Oops! We couldn't find a venue with that ID.");
-        } else {
-          setError("Failed to load venue details. Please check the server connection.");
-        }
+      .catch(() => {
+        setError("Failed to load trip details");
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, [id]);
 
-  // This loading state is now very obvious
-  if (loading) {
-    return <div className="status-container"><h2>Loading Venue Details...</h2></div>;
-  }
-
-  // This error state is also very obvious
-  if (error) {
+  if (loading) return <p>Loading trip details...</p>;
+  if (error)
     return (
-      <div className="status-container error-container">
-        <h2>Something Went Wrong</h2>
+      <>
         <p>{error}</p>
-        <Link to="/trips" className="back-link">Go Back to All Venues</Link>
-      </div>
+        <Link to="/trips">Back to trips</Link>
+      </>
     );
-  }
+
+  const formattedDate = trip.date
+    ? new Date(trip.date).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Date not specified";
 
   return (
     <div className="trip-detail-page-container">
       <Link to="/trips" className="back-link">
-        <i className="fa-solid fa-arrow-left"></i>
-        Back to All Venues
+        ← Back to All Venues
       </Link>
-      
-      {/* This part only renders if 'trip' is successfully fetched */}
-      {trip && (
-        <div className="trip-detail-card">
-          <img className="trip-detail-image" src={`https://picsum.photos/seed/${trip._id}/800/400`} alt={trip.destination} />
-          <div className="trip-detail-content">
-            <h1 className="trip-detail-title">{trip.destination}</h1>
-            <p className="trip-detail-location">{trip.location}</p>
-            <p className="trip-detail-description">{trip.description}</p>
-          </div>
+
+      <div className="trip-detail-card">
+        <TripCardImage query={trip.destination} altText={trip.destination} />
+
+        <div className="trip-detail-content">
+          <h1 className="trip-detail-title">{trip.destination}</h1>
+          <p>
+            <strong>Location:</strong> {trip.location}
+          </p>
+          <p>{trip.description}</p>
+
+          <p>
+            <strong>Date:</strong> {formattedDate}
+          </p>
+          <p>
+            <strong>Gender Preference:</strong>{" "}
+            {trip.genderPreference || "No preference"}
+          </p>
+          <p>
+            <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>Creator:</strong> {trip.creator?.name || trip.creator || "Not available"}
+          </p>
+          <p>
+            <strong>Participants:</strong>{" "}
+            {trip.participants && trip.participants.length > 0
+              ? trip.participants.map((p) => p.name || p).join(", ")
+              : "No participants yet"}
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -1,88 +1,96 @@
-/* ---
-============================================================
-  Styles for the Trip Detail Component
-============================================================
---- */
+/* TripDetail.css */
 
-/* --- Back Link --- */
+.trip-detail-page-container {
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 1.5rem 2rem;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem; /* Space between icon and text */
-  font-weight: 600;
-  color: #4a5568; /* A darker gray for text */
-  text-decoration: none;
+  gap: 0.5rem;
   margin-bottom: 2rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  background-color: #fff;
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s ease-in-out;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #4f46e5; /* Indigo 600 */
+  text-decoration: none;
+  transition: color 0.3s ease;
 }
 
 .back-link:hover {
-  background-color: #f7fafc; /* A very light gray on hover */
-  border-color: #cbd5e0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
+  color: #4338ca; /* Indigo 700 */
 }
 
-/* --- Main Detail Card --- */
 .trip-detail-card {
-  background-color: #fff;
-  border-radius: 16px; /* Softer, larger rounded corners */
-  overflow: hidden; /* This is crucial to make the image corners rounded */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07), 0 6px 6px rgba(0, 0, 0, 0.05);
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
 }
 
-/* --- Detail Image --- */
-.trip-detail-image {
+.trip-detail-card:hover {
+  transform: translateY(-6px);
+}
+
+.trip-detail-image,
+.image-loading-placeholder {
   width: 100%;
-  height: 400px; /* A taller, more prominent image */
-  object-fit: cover; /* Ensures the image covers the area without distortion */
-  display: block; /* Removes any extra space below the image */
+  height: 400px;
+  object-fit: cover;
+  filter: drop-shadow(0 0 10px rgba(79, 70, 229, 0.25));
+  border-radius: 16px 16px 0 0;
+  background: #e0e7ff; /* light indigo placeholder bg */
 }
 
-/* --- Detail Content Area --- */
 .trip-detail-content {
-  padding: 2.5rem 3rem; /* Generous padding for a premium feel */
+  padding: 2rem 2.5rem;
 }
 
-/* --- Title --- */
 .trip-detail-title {
-  font-size: 2.75rem; /* Large, impactful title */
+  font-size: 2.5rem;
   font-weight: 700;
-  margin: 0 0 0.5rem 0; /* Reset margin */
-  color: #1a202c; /* Very dark gray, almost black */
-  line-height: 1.2;
+  margin-bottom: 0.5rem;
+  color: #1e293b; /* slate-800 */
 }
 
-/* --- Location Subtitle --- */
 .trip-detail-location {
-  font-size: 1.25rem;
-  color: #718096; /* A muted gray for the subtitle */
-  margin-bottom: 2rem; /* Space between location and description */
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #6366f1; /* indigo-500 */
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-/* --- Description Text --- */
 .trip-detail-description {
-  font-size: 1.1rem;
-  line-height: 1.7; /* Increased line height for excellent readability */
-  color: #4a5568; /* A comfortable reading color */
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #475569; /* slate-600 */
+  user-select: text;
 }
 
-/* --- Reusable Loading/Error States --- */
-/* It's good practice for a component's CSS to be self-contained */
-.loading-container, .error-container {
-  text-align: center;
-  padding: 4rem 1rem;
-  font-size: 1.2rem;
-  color: #718096;
-}
-
-.error-container {
-  color: #e53e3e;
-  background-color: #fff5f5;
-  border: 1px solid #f56565;
-  border-radius: 8px;
+@media (min-width: 768px) {
+  .trip-detail-card {
+    flex-direction: row;
+    height: 400px;
+  }
+  .trip-detail-image,
+  .image-loading-placeholder {
+    width: 50%;
+    height: 100%;
+    border-radius: 16px 0 0 16px;
+  }
+  .trip-detail-content {
+    width: 50%;
+    padding: 3rem 3.5rem;
+  }
 }
