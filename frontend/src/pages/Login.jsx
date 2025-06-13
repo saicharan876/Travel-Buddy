@@ -22,7 +22,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/user/login', form);
+      const res = await axios.post('http://localhost:5000/login', form);
       login(res.data.token);
       navigate(from, { replace: true });
     } catch (err) {
