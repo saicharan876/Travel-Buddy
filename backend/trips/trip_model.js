@@ -4,6 +4,7 @@ const TripModelSchema = new mongoose.Schema({
   destination: String,
   description: String,
   location: String,
+  college: String,
   date: Date,
   genderPreference: String,
   blind: Boolean,

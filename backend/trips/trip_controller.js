@@ -21,6 +21,7 @@ async function createTrip(req, res) {
       location: body.location,
       date: body.date,
       genderPreference: body.genderPreference,
+      college: body.college,
       blind: body.blind,
       College: body.College,
       Job: body.Job,
@@ -62,6 +63,7 @@ async function getTripById(req, res) {
         date: trip.date,
         blind: true,
         description: trip.description,
+        college: trip.college,
       });
     }
 
