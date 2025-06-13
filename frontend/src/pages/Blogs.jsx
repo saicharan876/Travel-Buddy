@@ -5,27 +5,38 @@ import './Blogs.css';
 
 export default function Blogs() {
   const [blogs, setBlogs] = useState([]);
-  const [form, setForm] = useState({ title: '', content: '' });
+  const [form, setForm] = useState({
+    title: '',
+    destination: '',
+    content: '',
+    author: '',
+    image: ''
+  });
   const [loading, setLoading] = useState(true);
-  const [error, ] = useState('');
+  const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
 
   const { token } = useContext(AuthContext);
 
- useEffect(() => {
-  setBlogs([
-    {
-      _id: 'test123',
-      title: 'Sunset at the Beach',
-      content: 'The sunset was magical and the waves added a peaceful rhythm.',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=60'
-    }
-  ]);
-  setLoading(false);
-}, []);
+  useEffect(() => {
+    setLoading(true);
+    setError('');
 
+    axios.get('http://localhost:5000/blogs')
+      .then(res => {
+        setBlogs(res.data.blogs || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setError('Failed to load blogs. Please try again later.');
+        setLoading(false);
+      });
+  }, []);
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -37,10 +48,16 @@ export default function Blogs() {
       }
     };
 
-    axios.post('http://localhost:5000/blogs', form, config)
+    axios.post('http://localhost:5000/blogs/createBlog', form, config)
       .then(res => {
-        setBlogs(prevBlogs => [...prevBlogs, res.data.blog]);
-        setForm({ title: '', content: '' });
+        setBlogs(prev => [...prev, form]);
+        setForm({
+          title: '',
+          destination: '',
+          content: '',
+          author: '',
+          image: ''
+        });
       })
       .catch(err => {
         console.error(err);
@@ -54,15 +71,37 @@ export default function Blogs() {
   return (
     <div className="blogs-container">
       <h2 className="blogs-title">Travel Blogs</h2>
+
       <form onSubmit={handleSubmit} className="blog-form">
         <h3>Share Your Story</h3>
         {formError && <p className="form-error">{formError}</p>}
+
         <input
           name="title"
           value={form.title}
           placeholder="Blog Title"
           onChange={handleChange}
           required
+        />
+        <input
+          name="destination"
+          value={form.destination}
+          placeholder="Destination"
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="author"
+          value={form.author}
+          placeholder="Author Name"
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="image"
+          value={form.image}
+          placeholder="Image URL (optional)"
+          onChange={handleChange}
         />
         <textarea
           name="content"
@@ -73,11 +112,16 @@ export default function Blogs() {
         />
         <button type="submit">Add Blog</button>
       </form>
+
       <ul className="blog-list">
-        {blogs.map(blog => (
-          <li key={blog._id} className="blog-card">
-            {blog.image && <img src={blog.image} alt="Blog visual" className="blog-image" />}
+        {blogs.map((blog, index) => (
+          <li key={blog._id || index} className="blog-card">
+            {blog.image && (
+              <img src={blog.image} alt="Blog visual" className="blog-image" />
+            )}
             <h4>{blog.title}</h4>
+            <p><strong>Destination:</strong> {blog.destination}</p>
+            <p><strong>By:</strong> {blog.author}</p>
             <p>{blog.content}</p>
           </li>
         ))}

@@ -16,6 +16,6 @@ connectDB("mongodb://localhost:27017/Trip-Buddy")
 
 app.use('/', userRouter);
 app.use('/trip', tripRouter);
-app.use('/', blogRouter);
+app.use('/blogs', blogRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));

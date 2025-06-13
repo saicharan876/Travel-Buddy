@@ -12,7 +12,7 @@ async function createBlog(req, res) {
             image: body.image,
         });
 
-        res.status(201).end("Blog created successfully");
+        res.status(201).json({ blog: newBlog }).end("Blog created successfully");
 
     }
     catch (error) {
@@ -24,7 +24,7 @@ async function createBlog(req, res) {
 async function getAllBlogs(req, res) {
     try {
         const blogs = await BlogModel.find({});
-        res.status(200).json(blogs);
+        res.status(200).json({ blogs });
     } catch (error) {
         console.error('Error fetching blogs:', error);
         res.status(500).json({ message: 'Internal server error' });
