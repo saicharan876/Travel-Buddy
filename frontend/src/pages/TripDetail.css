@@ -30,11 +30,16 @@
 .trip-detail-card {
   background: white;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: auto;
   box-shadow: 0 12px 32px rgba(0,0,0,0.12);
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
+}
+.chatbox-container {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 1px solid #ccc;
 }
 
 .trip-detail-card:hover {

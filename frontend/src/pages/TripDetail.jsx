@@ -3,12 +3,14 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import TripCardImage from './TripCardImage';
 import './TripDetail.css'; 
+import Chatbox from '../components/Chatbox'; 
 
 export default function TripDetail() {
   const { id } = useParams();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
     axios
@@ -16,6 +18,10 @@ export default function TripDetail() {
       .then((res) => {
         setTrip(res.data);
         setError(null);
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user?._id) {
+        setUserId(user._id);
+        }
       })
       .catch(() => {
         setError("Failed to load trip details");
@@ -39,7 +45,7 @@ export default function TripDetail() {
         day: "numeric",
       })
     : "Date not specified";
-
+      const creatorId = trip.creator?._id || trip.creator;
   return (
     <div className="trip-detail-page-container">
       <Link to="/trips" className="back-link">
@@ -77,6 +83,12 @@ export default function TripDetail() {
           </p>
         </div>
       </div>
+              {creatorId && userId && creatorId !== userId && (
+        <div className="chatbox-container">
+          <h2>Chat with the Trip Creator</h2>
+          <Chatbox tripId={trip._id} userId={userId} receiverId={creatorId} />
+        </div>
+      )}
     </div>
   );
 }
