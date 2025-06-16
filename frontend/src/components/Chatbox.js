@@ -57,11 +57,11 @@ const Chatbox = ({ tripId, userId, receiverId }) => {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {messages.map((msg, idx) => (
           <div key={idx} style={{
-            textAlign: msg.senderId === userId ? 'right' : 'left',
+            textAlign: msg.senderId.toString() === userId.toString() ? 'right' : 'left',
             marginBottom: '0.5rem'
           }}>
             <span style={{
-              background: msg.senderId === userId ? '#DCF8C6' : '#F1F0F0',
+              background: msg.senderId.toString() === userId.toString() ? '#DCF8C6' : '#F1F0F0',
               padding: '8px 12px',
               borderRadius: '16px',
               display: 'inline-block'

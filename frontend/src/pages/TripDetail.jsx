@@ -83,7 +83,7 @@ export default function TripDetail() {
           </p>
         </div>
       </div>
-              {creatorId && userId && creatorId !== userId && (
+              {creatorId && userId && creatorId.toString() !== userId.toString() && (
         <div className="chatbox-container">
           <h2>Chat with the Trip Creator</h2>
           <Chatbox tripId={trip._id} userId={userId} receiverId={creatorId} />

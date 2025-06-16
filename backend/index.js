@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", async ({ roomId, message, senderId, receiverId }) => {
-    const newMessage = new Message({ tripId: roomId, senderId, receiverId, message });
+    const newMessage = new ChatMessage({ tripId: roomId, senderId, receiverId, message });
     await newMessage.save();
 
     io.to(roomId).emit("receiveMessage", {
