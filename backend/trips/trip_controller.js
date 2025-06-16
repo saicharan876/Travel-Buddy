@@ -3,18 +3,16 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const TripModel = require("./trip_model.js");
 
-const SECRET = "!@#$%^&*()";
+const SECRET = "123";
 
 // Create a new trip
 async function createTrip(req, res) {
   try {
-    // Optional JWT logic for authentication
-    // const token = req.header("Authorization")?.split(" ")[1];
-    // if (!token) return res.status(401).json({ message: "Token missing" });
-    // const decoded = jwt.verify(token, SECRET);
+
+
 
     const body = req.body;
-
+    const userId = req.user.id;
     const trip = await TripModel.create({
       destination: body.destination,
       description: body.description,
@@ -25,7 +23,7 @@ async function createTrip(req, res) {
       blind: body.blind,
       College: body.College,
       Job: body.Job,
-      // creator: decoded.id,
+      creator: userId,
     });
 
     return res.status(201).json({

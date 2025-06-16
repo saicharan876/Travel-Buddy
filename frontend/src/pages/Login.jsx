@@ -1,8 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import './Login.css'; // Import your CSS file
+import './Login.css';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -11,9 +11,15 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated } = useContext(AuthContext);
 
   const from = location.state?.from?.pathname || "/";
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -23,8 +29,8 @@ export default function Login() {
     setError('');
     try {
       const res = await axios.post('http://localhost:5000/login', form);
-      login(res.data.token);
-      navigate(from, { replace: true });
+      console.log("Login token:", res.data.token); // Debug
+      login(res.data.token); // This sets token and user in context
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       setLoading(false);

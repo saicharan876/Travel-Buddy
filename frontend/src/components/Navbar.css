@@ -61,3 +61,21 @@
   background: #222;
   color: #f4d35e;
 }
+
+.navbar-links button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.navbar-links button:hover {
+  background: #222;
+  color: #f4d35e;
+}
+

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { Auth } = require("../middleware/auth_middleware");
 const {
   createTrip,
   getTripById,
@@ -10,7 +11,7 @@ const {
 } = require("./trip_controller");
 
 // Create a new trip
-router.post("/create", createTrip);
+router.post("/create",Auth, createTrip);
 
 // Get all trips or by ?location=
 router.get("/", TripMainPage);

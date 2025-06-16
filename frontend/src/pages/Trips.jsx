@@ -30,6 +30,10 @@ export default function Trips() {
     destination: "",
     description: "",
     location: "",
+    date: "",
+    college: "", 
+    genderPreference: "", 
+    blind: false, 
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -73,24 +77,33 @@ export default function Trips() {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    axios
-      .post("http://localhost:5000/trip/create", form)
-      .then((res) => {
-        setTrips((prev) => [res.data.trip, ...prev]);
-        setForm({
-          destination: "",
-          description: "",
-          location: "",
-          date: "",
-          college: "",
-          genderPreference: "",
-          blind: false,
-        });
-        setActiveTab("/");
-      })
-      .catch(() => alert("Could not add trip."));
-  };
+  e.preventDefault();
+  const token = localStorage.getItem("token"); // Assuming you store it there during login
+
+  axios
+    .post("http://localhost:5000/trip/create", form, {
+      headers: {
+        Authorization: `Bearer ${token}`, // ✅ Add this
+      },
+    })
+    .then((res) => {
+      setTrips((prev) => [res.data.trip, ...prev]);
+      setForm({
+        destination: "",
+        description: "",
+        location: "",
+        date: "",
+        college: "",
+        genderPreference: "",
+        blind: false,
+      });
+      setActiveTab("/");
+    })
+    .catch((err) => {
+      console.error(err.response?.data || err.message);
+      alert("Could not add trip. Make sure you're logged in.");
+    });
+};
 
   const handleLocationSearch = (e) => {
     e.preventDefault();

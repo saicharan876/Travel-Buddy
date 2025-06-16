@@ -1,14 +1,17 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import  {jwtDecode}  from 'jwt-decode';
 
 // Create the context
 export const AuthContext = createContext(null);
+
 
 // Create the provider component
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
 
+
+  const isAuthenticated = !!token;
   // Effect to run on initial load and when token changes
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -42,7 +45,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const authContextValue = { token, user, login, logout };
+  const authContextValue = { token, user, login, logout, isAuthenticated };
 
   return (
     <AuthContext.Provider value={authContextValue}>

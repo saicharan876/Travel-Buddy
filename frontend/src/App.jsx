@@ -8,7 +8,7 @@ import Blogs from './pages/Blogs';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import TripDetail from './pages/TripDetail';
-
+import PrivateRoute from './components/PrivateRoute';
 function FlipPage({ children }) {
   return (
       <motion.div
@@ -35,11 +35,13 @@ function App() {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<FlipPage><Home /></FlipPage>} />
-          <Route path="/blogs" element={<FlipPage><Blogs /></FlipPage>} />
-          <Route path="/trips" element={<FlipPage><Trips /></FlipPage>} />
-          <Route path="/trip/:id" element={<FlipPage><TripDetail /></FlipPage>} />
           <Route path="/login" element={<FlipPage><Login /></FlipPage>} />
           <Route path="/signup" element={<FlipPage><Signup /></FlipPage>} />
+          <Route path="/blogs" element={<FlipPage><Blogs /></FlipPage>} />
+          <Route element={<PrivateRoute />}>
+          <Route path="/trips" element={<FlipPage><Trips /></FlipPage>} />
+          <Route path="/trip/:id" element={<FlipPage><TripDetail /></FlipPage>} />
+          </Route>
         </Routes>
       </AnimatePresence>
     </>
