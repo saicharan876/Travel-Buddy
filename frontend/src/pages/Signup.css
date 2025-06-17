@@ -1,11 +1,11 @@
 :root {
-  --primary: #f0932b;         /* Sunset Orange */
-  --primary-dark: #d35400;    /* Darker sunset tone */
-  --background-light: #ffeaa7; /* Warm peach */
-  --accent: #74b9ff;          /* Light sky blue */
-  --text-dark: #2d3436;       /* Deep purple/charcoal */
-  --danger: #e74c3c;          /* Alert red */
-  --danger-bg: #f9d6d5;       /* Light red background */
+  --primary: #f0932b;
+  --primary-dark: #d35400;
+  --background-light: #ffeaa7;
+  --accent: #74b9ff;
+  --text-dark: #2d3436;
+  --danger: #e74c3c;
+  --danger-bg: #f9d6d5;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -21,40 +21,53 @@
 
 .signup-form {
   background-color: #fff;
-  padding: 40px 30px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 420px;
+  padding: 40px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 900px;
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
   transition: transform 0.3s ease;
 }
 
 .signup-form:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
 }
 
-.signup-form h2 {
+.signup-fields {
+  flex: 2;
+}
+
+.signup-fields h2 {
   text-align: center;
   color: var(--text-dark);
   margin-bottom: 20px;
 }
 
-.signup-form input {
+.signup-fields label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: 500;
+}
+
+.signup-fields input {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
+  padding: 10px;
+  margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 15px;
   transition: border-color 0.2s ease;
 }
 
-.signup-form input:focus {
+.signup-fields input:focus {
   border-color: var(--primary);
   outline: none;
 }
 
-.signup-form button {
+.signup-fields button {
   width: 100%;
   padding: 12px;
   font-size: 16px;
@@ -63,14 +76,15 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  margin-top: 10px;
   transition: background-color 0.3s ease;
 }
 
-.signup-form button:hover:not(:disabled) {
+.signup-fields button:hover:not(:disabled) {
   background-color: var(--primary-dark);
 }
 
-.signup-form button:disabled {
+.signup-fields button:disabled {
   background-color: #ffd8a8;
   cursor: not-allowed;
 }
@@ -82,4 +96,15 @@
   border-radius: 6px;
   text-align: center;
   margin-bottom: 10px;
+}
+
+.profile-preview {
+  flex: 1;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  margin: auto;
+  margin-top: 40px;
 }

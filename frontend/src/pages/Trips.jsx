@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import "./Trips.css";
 import TripCardImage from "./TripCardImage";
 import video from "./Generated File June 13, 2025 - 10_53PM.mp4";
+import { AuthContext } from "../context/AuthContext.jsx";
 
 // Video background component
 const VideoBackground = () => (
@@ -26,14 +27,16 @@ const TABS = [
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);
+  const { isAuthenticated, getUserId, token } = useContext(AuthContext);
+
   const [form, setForm] = useState({
     destination: "",
     description: "",
     location: "",
     date: "",
-    college: "", 
-    genderPreference: "", 
-    blind: false, 
+    college: "",
+    genderPreference: "",
+    blind: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,6 +44,8 @@ export default function Trips() {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [searchLocation, setSearchLocation] = useState("");
   const [searchCollege, setSearchCollege] = useState("");
+  const [joiningTripId, setJoiningTripId] = useState(null);
+  const id = isAuthenticated && getUserId ? getUserId() : null;
 
   useEffect(() => {
     if (activeTab === "create") return;
@@ -54,10 +59,7 @@ export default function Trips() {
       apiUrl += `?location=${encodeURIComponent(searchLocation)}`;
     } else if (activeTab === "college" && searchCollege.trim()) {
       apiUrl += `/college?college=${encodeURIComponent(searchCollege)}`;
-    } else if (
-      activeTab !== "/" &&
-      !["location", "college"].includes(activeTab)
-    ) {
+    } else if (activeTab !== "/" && !["location", "college"].includes(activeTab)) {
       apiUrl += `/${activeTab}`;
     }
 
@@ -65,45 +67,49 @@ export default function Trips() {
       .get(apiUrl)
       .then((res) => setTrips(res.data))
       .catch(() => {
-        const label =
-          TABS.find((t) => t.id === activeTab)?.label || "this category";
+        const label = TABS.find((t) => t.id === activeTab)?.label || "this category";
         setError(`Failed to load trips for ${label}.`);
         setTrips([]);
       })
       .finally(() => setLoading(false));
   }, [activeTab, searchLocation, searchCollege]);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
-  e.preventDefault();
-  const token = localStorage.getItem("token"); // Assuming you store it there during login
+    e.preventDefault();
+    const token = localStorage.getItem("token");
 
-  axios
-    .post("http://localhost:5000/trip/create", form, {
-      headers: {
-        Authorization: `Bearer ${token}`, // ✅ Add this
-      },
-    })
-    .then((res) => {
-      setTrips((prev) => [res.data.trip, ...prev]);
-      setForm({
-        destination: "",
-        description: "",
-        location: "",
-        date: "",
-        college: "",
-        genderPreference: "",
-        blind: false,
+    
+
+    const trip_form = {
+      ...form,
+      creator: id,
+    };
+
+    axios
+      .post("http://localhost:5000/trip/create", trip_form, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setTrips((prev) => [res.data.trip, ...prev]);
+        setForm({
+          destination: "",
+          description: "",
+          location: "",
+          date: "",
+          college: "",
+          genderPreference: "",
+          blind: false,
+        });
+        handleJoinTrip(res.data.trip._id);
+        setActiveTab("/");
+      })
+      .catch((err) => {
+        console.error(err.response?.data || err.message);
+        alert("Could not add trip. Make sure you're logged in.");
       });
-      setActiveTab("/");
-    })
-    .catch((err) => {
-      console.error(err.response?.data || err.message);
-      alert("Could not add trip. Make sure you're logged in.");
-    });
-};
+  };
 
   const handleLocationSearch = (e) => {
     e.preventDefault();
@@ -112,8 +118,43 @@ export default function Trips() {
 
   const handleCollegeSearch = (e) => {
     e.preventDefault();
-    setSearchCollege(form.location);
+    setSearchCollege(form.college);
   };
+
+const handleJoinTrip = async (tripId) => {
+  if (!isAuthenticated || !token) {
+    alert("You must be logged in to join a trip.");
+    return;
+  }
+
+  setJoiningTripId(tripId);
+  try {
+    await axios.post(
+      `http://localhost:5000/trip/join/${tripId}`,{id},
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    alert("Successfully joined the trip!");
+
+    
+    setTrips((prevTrips) =>
+      prevTrips.map((trip) =>
+        trip._id === tripId
+          ? { ...trip, participants: [...trip.participants, getUserId()] }
+          : trip
+      )
+    );
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message || error.message || "Failed to join the trip.";
+    alert(errorMessage);
+    console.error(errorMessage);
+  } finally {
+    setJoiningTripId(null);
+  }
+};
+
 
   return (
     <>
@@ -176,9 +217,7 @@ export default function Trips() {
             <select
               name="genderPreference"
               value={form.genderPreference}
-              onChange={(e) =>
-                setForm({ ...form, genderPreference: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, genderPreference: e.target.value })}
             >
               <option value="">Select Gender Preference</option>
               <option value="Any">Any</option>
@@ -240,17 +279,10 @@ export default function Trips() {
             ) : (
               <ul ref={tripsGridRef} className="trips-grid">
                 {trips.map((trip) => (
-                  <Link
-                    to={`/trip/${trip._id}`}
-                    key={trip._id}
-                    className="card-link-wrapper"
-                  >
-                    <li className="trip-card">
+                  <li key={trip._id} className="trip-card">
+                    <Link to={`/trip/${trip._id}`} className="card-link-wrapper">
                       <div className="card-image-container">
-                        <TripCardImage
-                          query={trip.destination}
-                          altText={trip.destination}
-                        />
+                        <TripCardImage query={trip.destination} altText={trip.destination} />
                       </div>
                       <div className="card-content">
                         <div className="card-header">
@@ -266,8 +298,15 @@ export default function Trips() {
                           <i className="fa-solid fa-person-swimming" />
                         </div>
                       </div>
-                    </li>
-                  </Link>
+                    </Link>
+                    <button
+                      className="join-trip-btn"
+                      disabled={joiningTripId === trip._id}
+                      onClick={() => handleJoinTrip(trip._id)}
+                    >
+                      {joiningTripId === trip._id ? "Joining..." : "Join"}
+                    </button>
+                  </li>
                 ))}
               </ul>
             )}

@@ -24,6 +24,7 @@ app.use('/blogs', blogRouter);
 app.use('/api/chat', chatRouter);
 
 
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" }

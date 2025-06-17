@@ -8,9 +8,6 @@ const SECRET = "123";
 // Create a new trip
 async function createTrip(req, res) {
   try {
-
-
-
     const body = req.body;
     const userId = req.user.id;
     const trip = await TripModel.create({
@@ -23,7 +20,7 @@ async function createTrip(req, res) {
       blind: body.blind,
       College: body.College,
       Job: body.Job,
-      creator: userId,
+      creator: body.creator,
     });
 
     return res.status(201).json({
@@ -48,12 +45,16 @@ async function getTripById(req, res) {
       return res.status(400).json({ message: "Invalid trip ID" });
     }
 
-    const trip = await TripModel.findById(tripId);
+    // Populate creator and participants (only their name)
+    const trip = await TripModel.findById(tripId)
+      .populate("creator", "name")
+      .populate("participants", "name");
 
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
     }
 
+    
     if (trip.blind) {
       return res.status(200).json({
         _id: trip._id,
@@ -62,9 +63,11 @@ async function getTripById(req, res) {
         blind: true,
         description: trip.description,
         college: trip.college,
+        creator: trip.creator?.name || "Hidden",
       });
     }
 
+    
     return res.status(200).json(trip);
   } catch (error) {
     console.error("Error fetching trip:", error.message);
@@ -93,6 +96,32 @@ async function TripMainPage(req, res) {
       message: "Failed to fetch trips",
       error: error.message,
     });
+  }
+}
+
+async function AddParticipate(req, res) {
+  try {
+    const tripId = req.params.id;
+    const { id: userId } = req.body;
+
+    const trip = await TripModel.findById(tripId);
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    if (trip.participants && trip.participants.includes(userId)) {
+      return res.status(400).json({ message: "User already joined this trip" });
+    }
+
+    trip.participants = trip.participants || [];
+    trip.participants.push(userId);
+
+    await trip.save();
+
+    return res.status(200).json({ message: "Successfully joined the trip" });
+  } catch (error) {
+    console.error("Error joining trip:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -151,7 +180,7 @@ async function BlindTrips(req, res) {
       return res.status(404).json({ message: "No blind trips found" });
     }
 
-    const tripList = blindTrips.map(trip => ({
+    const tripList = blindTrips.map((trip) => ({
       _id: trip._id,
       destination: trip.destination,
       date: trip.date,
@@ -176,4 +205,5 @@ module.exports = {
   TripCollegePage,
   TripLocationPage,
   BlindTrips,
+  AddParticipate,
 };

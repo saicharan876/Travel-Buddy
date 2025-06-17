@@ -1,5 +1,3 @@
-// --- Blogs.js ---
-
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -7,6 +5,8 @@ import "./Blogs.css";
 
 export default function Blogs() {
   const [blogs, setBlogs] = useState([]);
+  const { isAuthenticated, getUserId, token } = useContext(AuthContext);
+
   const [form, setForm] = useState({
     title: "",
     destination: "",
@@ -14,17 +14,14 @@ export default function Blogs() {
     author: "",
     image: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false); // For disabling button
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { token } = useContext(AuthContext);
-
-  useEffect(() => {
+  const fetchBlogs = () => {
     setLoading(true);
-    setError("");
-
     axios
       .get("http://localhost:5000/blogs")
       .then((res) => {
@@ -36,6 +33,10 @@ export default function Blogs() {
         setError("Failed to load blogs. Please try again later.");
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchBlogs();
   }, []);
 
   const handleChange = (e) => {
@@ -47,22 +48,28 @@ export default function Blogs() {
     setFormError("");
     setIsSubmitting(true);
 
+    const id = isAuthenticated && getUserId ? getUserId() : null;
+
+    if (!id) {
+      setFormError("User not authenticated");
+      setIsSubmitting(false);
+      return;
+    }
+
     const config = {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     };
 
-    axios
-      .post("http://localhost:5000/blogs/createBlog", form, config)
-      .then((res) => {
-        // IMPROVEMENT: Use the new blog object from the server response
-        // This ensures you get the database _id
-        // Make sure your backend API returns the newly created blog object
-        const newBlogFromServer = res.data.newBlog || res.data;
-        setBlogs((prev) => [...prev, newBlogFromServer]);
+    const blogData = {
+      ...form,
+      author_Id: id,
+    };
 
-        // Reset the form
+    axios
+      .post("http://localhost:5000/blogs/createBlog", blogData, config)
+      .then(() => {
         setForm({
           title: "",
           destination: "",
@@ -70,6 +77,10 @@ export default function Blogs() {
           author: "",
           image: "",
         });
+
+        
+        fetchBlogs();
+
       })
       .catch((err) => {
         console.error(err);
@@ -78,7 +89,6 @@ export default function Blogs() {
         );
       })
       .finally(() => {
-        // Re-enable the button after the request is complete
         setIsSubmitting(false);
       });
   };
@@ -129,7 +139,6 @@ export default function Blogs() {
             onChange={handleChange}
             required
           />
-          {/* IMPROVEMENT: Disable button on submit and change text */}
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Adding Blog..." : "Add Blog"}
           </button>
@@ -137,18 +146,13 @@ export default function Blogs() {
 
         <ul className="blog-list">
           {blogs.map((blog) => (
-            // IMPROVEMENT: Use the stable _id from the database as the key
             <li key={blog._id} className="blog-card">
               {blog.image && (
                 <img src={blog.image} alt={blog.title} className="blog-image" />
               )}
               <h4>{blog.title}</h4>
-              <p>
-                <strong>Destination:</strong> {blog.destination}
-              </p>
-              <p>
-                <strong>By:</strong> {blog.author}
-              </p>
+              <p><strong>Destination:</strong> {blog.destination}</p>
+              <p><strong>Author:</strong> {blog.author}</p>
               <p>{blog.content}</p>
             </li>
           ))}

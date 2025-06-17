@@ -7,11 +7,15 @@ const {
   TripMainPage,
   TripCollegePage,
   TripLocationPage,
-  BlindTrips
+  BlindTrips,
+  AddParticipate,
 } = require("./trip_controller");
 
 // Create a new trip
 router.post("/create",Auth, createTrip);
+
+//Add Participate
+router.post("/join/:id",AddParticipate)
 
 // Get all trips or by ?location=
 router.get("/", TripMainPage);

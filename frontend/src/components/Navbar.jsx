@@ -4,13 +4,16 @@ import { AuthContext } from '../context/AuthContext';
 import './Navbar.css';
 
 export default function Navbar() {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, logout, getUserId } = useContext(AuthContext); 
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/'); // Redirect to home after logout
   };
+
+  
+  const id = isAuthenticated && getUserId ? getUserId() : null;
 
   return (
     <nav className="navbar">
@@ -22,7 +25,7 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <>
-              <Link to="/profile">Profile</Link>
+              <Link to={`/user/${id}`}>Profile</Link>
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>

@@ -25,6 +25,11 @@ const blogSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    author_Id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
 });
 
 
