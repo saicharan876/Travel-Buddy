@@ -84,6 +84,18 @@ async function getUser(req, res) {
     res.status(500).json({ error: "Server error", details: err.message });
   }
 }
+async function getUserIdByUsername(req, res) {
+  try {
+    const username = req.params.username;
+    const user = await User.findOne({ name: username }).select("_id");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({ _id: user._id });
+  } catch (err) {
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+}
 
 
 async function updateProfilePhoto(req, res) {
@@ -108,4 +120,4 @@ async function updateProfilePhoto(req, res) {
   }
 }
 
-module.exports = { signup, login, getUser,updateProfilePhoto, };
+module.exports = { signup, login, getUser,updateProfilePhoto,getUserIdByUsername };

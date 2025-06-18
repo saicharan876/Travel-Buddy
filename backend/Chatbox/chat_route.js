@@ -4,7 +4,9 @@ const Message = require("./chat_model.js");
 
 router.get("/:tripId", async (req, res) => {
   try {
-    const messages = await Message.find({ tripId: req.params.tripId }).sort("timestamp");
+    const messages = await Message.find({ tripId: req.params.tripId })
+    .sort("timestamp")
+    .populate("senderId", "name avatar"); 
     res.json(messages);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch messages" });

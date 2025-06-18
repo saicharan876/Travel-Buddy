@@ -9,7 +9,6 @@ const Chatbox = ({ tripId, userId, receiverId }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom when messages update
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -18,7 +17,6 @@ const Chatbox = ({ tripId, userId, receiverId }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Join trip room + fetch history
   useEffect(() => {
     socket.emit('joinRoom', { roomId: tripId });
 
@@ -27,7 +25,6 @@ const Chatbox = ({ tripId, userId, receiverId }) => {
       .catch(err => console.error('Failed to load messages:', err));
   }, [tripId]);
 
-  // Receive real-time messages
   useEffect(() => {
     socket.on('receiveMessage', (msg) => {
       setMessages(prev => [...prev, msg]);
@@ -55,21 +52,50 @@ const Chatbox = ({ tripId, userId, receiverId }) => {
   return (
     <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', height: '400px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {messages.map((msg, idx) => (
-          <div key={idx} style={{
-            textAlign: msg.senderId.toString() === userId.toString() ? 'right' : 'left',
-            marginBottom: '0.5rem'
-          }}>
-            <span style={{
-              background: msg.senderId.toString() === userId.toString() ? '#DCF8C6' : '#F1F0F0',
-              padding: '8px 12px',
-              borderRadius: '16px',
-              display: 'inline-block'
-            }}>
-              {msg.message}
-            </span>
+        {messages.map((msg, idx) => {
+  const isMe = msg.senderId?._id?.toString() === userId.toString();
+
+  return (
+    <div key={idx} style={{
+      display: 'flex',
+      flexDirection: isMe ? 'row-reverse' : 'row',
+      alignItems: 'flex-start',
+      marginBottom: '1rem'
+    }}>
+      {!isMe && msg.senderId?.avatar && (
+       <img
+            src={msg.senderId?.avatar || ''}
+            alt=""
+            style={{
+            width: msg.senderId?.avatar ? '32px' : '0px',
+            height: msg.senderId?.avatar ? '32px' : '0px',
+            borderRadius: '50%',
+            marginRight: msg.senderId?.avatar ? '0.5rem' : '0',
+            objectFit: 'cover',
+            transition: '0.3s'
+          }}
+        />
+      )}
+      <div style={{ maxWidth: '70%' }}>
+        {!isMe && (
+          <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '2px' }}>
+            {msg.senderId?.name || 'Unknown'}
           </div>
-        ))}
+        )}
+        <div style={{
+          background: isMe ? '#DCF8C6' : '#F1F0F0',
+          padding: '8px 12px',
+          borderRadius: '16px',
+          display: 'inline-block',
+          wordWrap: 'break-word'
+        }}>
+          {msg.message}
+        </div>
+      </div>
+    </div>
+  );
+    })}
+
         <div ref={messagesEndRef} />
       </div>
 
