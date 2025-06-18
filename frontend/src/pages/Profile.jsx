@@ -8,7 +8,7 @@ function Profile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [photoInput, setPhotoInput] = useState("");
-  const [imageError, setImageError] = useState(false);
+  const [ setImageError] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {

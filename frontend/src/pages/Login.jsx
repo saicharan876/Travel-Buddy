@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import './Login.css';
-
+import AnimatedGlobe from "../components/animation.js";
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -38,7 +38,12 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
+  <div className="login-container">
+    <div className="login-wrapper">
+      <div className="globe-container">
+        <AnimatedGlobe size={220} />
+        <p className="globe-tagline">Discover. Connect. Travel.</p>
+      </div>
       <form onSubmit={handleSubmit} className="login-form">
         <h2>Login</h2>
         {error && <p className="error-message">{error}</p>}
@@ -61,5 +66,7 @@ export default function Login() {
         </button>
       </form>
     </div>
-  );
+  </div>
+);
+
 }

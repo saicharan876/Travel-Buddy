@@ -1,27 +1,63 @@
 :root {
-  --primary: #f0932b;
-  --primary-dark: #d35400;
-  --background-light: #ffeaa7;
-  --accent: #74b9ff;
-  --text-dark: #2d3436;
+  --primary: #0e76a8;             /* Corporate blue */
+  --primary-dark: #094b68;
+  --accent: #20c997;
+  --background-light: #e8f1f8;
+  --text-dark: #1f2d3d;
   --danger: #e74c3c;
-  --danger-bg: #f9d6d5;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --danger-bg: #fdecea;
+  --card-bg: #ffffff;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(circle at 30% 20%, #e8f1f8, #f5f8fb);
+  color: var(--text-dark);
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+body::before {
+  width: 400px;
+  height: 400px;
+  background: var(--primary);
+  top: -80px;
+  left: -120px;
+}
+
+body::after {
+  width: 500px;
+  height: 500px;
+  background: var(--accent);
+  bottom: -150px;
+  right: -150px;
 }
 
 .signup-container {
   height: 100vh;
   width: 100vw;
-  background: linear-gradient(to right, var(--primary), var(--background-light));
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 1;
+  position: relative;
 }
 
 .signup-form {
-  background-color: #fff;
-  padding: 40px;
+  background-color: var(--card-bg);
+  padding: 48px;
   border-radius: 16px;
   width: 90%;
   max-width: 900px;
@@ -30,6 +66,8 @@
   flex-direction: row;
   gap: 40px;
   transition: transform 0.3s ease;
+  z-index: 2;
+  border: 1px solid #dfe6ec;
 }
 
 .signup-form:hover {
@@ -43,59 +81,65 @@
 .signup-fields h2 {
   text-align: center;
   color: var(--text-dark);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  font-size: 26px;
 }
 
 .signup-fields label {
   display: block;
-  margin: 10px 0 5px;
+  margin: 10px 0 6px;
   font-weight: 500;
 }
 
 .signup-fields input {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 15px;
-  transition: border-color 0.2s ease;
+  background-color: #fefefe;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .signup-fields input:focus {
   border-color: var(--primary);
   outline: none;
+  box-shadow: 0 0 0 2px rgba(14, 118, 168, 0.15);
 }
 
 .signup-fields button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   font-size: 16px;
   background-color: var(--primary);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.3s ease;
+  margin-top: 14px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .signup-fields button:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
 .signup-fields button:disabled {
-  background-color: #ffd8a8;
+  background-color: #aacde5;
   cursor: not-allowed;
 }
 
 .error-message {
   color: var(--danger);
   background-color: var(--danger-bg);
-  padding: 10px;
+  padding: 12px;
   border-radius: 6px;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  font-weight: 500;
+  border-left: 4px solid var(--danger);
 }
 
 .profile-preview {
@@ -104,7 +148,8 @@
   height: 250px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--accent);
+  border: 4px solid var(--accent);
   margin: auto;
   margin-top: 40px;
+  box-shadow: var(--shadow);
 }
