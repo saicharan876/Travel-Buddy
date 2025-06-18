@@ -21,16 +21,38 @@ body {
   background: var(--bg-gradient);
   margin: 0;
   padding: 0;
+  
 }
 
 .profile-container {
   padding: 2rem;
   max-width: 1000px;
+  max-height: 90vh; 
   margin: 3rem auto;
   background-color: #ffffffcc;
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(10px);
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #e5e7eb;
+}
+
+
+.profile-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+.profile-container::-webkit-scrollbar-thumb {
+  background-color: #6366f1;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
 }
 
 h1 {

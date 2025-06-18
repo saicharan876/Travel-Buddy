@@ -68,6 +68,26 @@ body::after {
   transition: transform 0.3s ease;
   z-index: 2;
   border: 1px solid #dfe6ec;
+  max-height: 90vh; 
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #e5e7eb;
+}
+
+.signup-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.signup-form::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+.signup-form::-webkit-scrollbar-thumb {
+  background-color: #6366f1;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
 }
 
 .signup-form:hover {

@@ -33,7 +33,7 @@ router.put("/edit/:id",Auth,editTrip);
 router.get("/", TripMainPage);
 
 // Get trips by college
-router.get("/college", TripCollegePage);
+router.get("/college",TripCollegePage);
 
 // Get trips by location
 router.get("/location", TripLocationPage);

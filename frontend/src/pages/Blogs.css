@@ -13,12 +13,31 @@
 .blogs-container {
   width: 100%;
   max-width: 900px;
+  max-height: 90vh;
   backdrop-filter: blur(8px);
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #e5e7eb;
+}
+
+.blogs-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.blogs-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+.blogs-container::-webkit-scrollbar-thumb {
+  background-color: #6366f1;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
 }
 
 /* Title Styling */

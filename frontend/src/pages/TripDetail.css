@@ -1,14 +1,32 @@
 .trip-detail-page-container {
   max-width: 1280px;
   margin: 3rem auto;
-  padding: 1.5rem 2rem;
+  padding: 2.5rem 2rem;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #222;
   background: #f9fafb;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
+/* Custom Scrollbar */
+.trip-detail-page-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trip-detail-page-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+
+.trip-detail-page-container::-webkit-scrollbar-thumb {
+  background-color: #6366f1;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+}
+
+/* Back Link */
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -30,6 +48,7 @@
   outline-offset: 2px;
 }
 
+/* Card Layout */
 .trip-detail-card {
   display: flex;
   flex-direction: column;
@@ -39,9 +58,9 @@
   background: white;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin: 2rem auto;
-  max-width: 90%;
 }
 
+/* Image */
 .trip-detail-image,
 .image-loading-placeholder {
   width: 100%;
@@ -62,10 +81,10 @@
   100% { opacity: 1; }
 }
 
+/* Content Section */
 .trip-detail-content {
   flex: 1;
   overflow-y: auto;
-  max-height: 500px;
   padding-right: 1rem;
 }
 
@@ -92,6 +111,7 @@
   user-select: text;
 }
 
+/* Action Buttons */
 .trip-actions {
   display: flex;
   gap: 1rem;
@@ -113,7 +133,7 @@
   transition: all 0.3s ease;
 }
 
-/* Edit button */
+/* Edit */
 .edit-button {
   background-color: #2563eb;
   color: white;
@@ -124,7 +144,7 @@
   transform: scale(1.05);
 }
 
-/* Delete button */
+/* Delete */
 .delete-button {
   background-color: #dc2626;
   color: white;
@@ -135,7 +155,7 @@
   transform: scale(1.05);
 }
 
-/* Join button */
+/* Join */
 .join-button {
   background-color: #4f46e5;
   color: white;
@@ -146,7 +166,7 @@
   transform: scale(1.05);
 }
 
-/* Leave button */
+/* Leave */
 .leave-button {
   background-color: #e11d48;
   color: white;
@@ -157,18 +177,20 @@
   transform: scale(1.05);
 }
 
+/* Join Button Wrapper */
 .join-button-container {
   text-align: center;
   margin-top: 1.5rem;
 }
 
+/* Chatbox */
 .chatbox-container {
   margin-top: 2rem;
   padding: 1rem;
   border-top: 1px solid #e5e7eb;
 }
 
-/* Responsive layout for larger screens */
+/* Responsive Layout */
 @media (min-width: 768px) {
   .trip-detail-card {
     flex-direction: row;

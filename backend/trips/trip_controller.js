@@ -139,7 +139,7 @@ async function TripCollegePage(req, res) {
 
     const query = {};
     if (selectedCollege) {
-      query.College = selectedCollege;
+      query.college = selectedCollege; 
     }
 
     const trips = await TripModel.find(query);

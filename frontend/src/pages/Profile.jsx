@@ -8,7 +8,7 @@ function Profile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [photoInput, setPhotoInput] = useState("");
-  const [ setImageError] = useState(false);
+  const [setImageError] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -123,12 +123,23 @@ function Profile() {
       <h2>Trips Created</h2>
       <div className="card-container">
         {tripsCreated.length > 0 ? (
-          tripsCreated.map((trip) => (
-            <Link to={`/trip/${trip._id}`} key={trip._id} className="card">
-              <h3>{trip.destination}</h3>
-              <p>{trip.date}</p>
-            </Link>
-          ))
+          tripsCreated.map((trip) => {
+            const formattedDate = new Date(trip.date).toLocaleDateString(
+              "en-IN",
+              {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              }
+            );
+
+            return (
+              <Link to={`/trip/${trip._id}`} key={trip._id} className="card">
+                <h3>{trip.destination}</h3>
+                <p>{formattedDate}</p>
+              </Link>
+            );
+          })
         ) : (
           <p>No trips created.</p>
         )}
@@ -137,12 +148,23 @@ function Profile() {
       <h2>Trips Joined</h2>
       <div className="card-container">
         {tripsJoined.length > 0 ? (
-          tripsJoined.map((trip) => (
-            <Link to={`/trip/${trip._id}`} key={trip._id} className="card">
-              <h3>{trip.destination}</h3>
-              <p>{trip.date}</p>
-            </Link>
-          ))
+          tripsJoined.map((trip) => {
+            const formattedDate = new Date(trip.date).toLocaleDateString(
+              "en-IN",
+              {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              }
+            );
+
+            return (
+              <Link to={`/trip/${trip._id}`} key={trip._id} className="card">
+                <h3>{trip.destination}</h3>
+                <p>{formattedDate}</p>
+              </Link>
+            );
+          })
         ) : (
           <p>No trips joined.</p>
         )}

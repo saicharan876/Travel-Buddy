@@ -17,7 +17,7 @@ body {
   background: radial-gradient(circle at top right, #e8f1f8, #f4f7fa);
   color: var(--text-dark);
   position: relative;
-  overflow: hidden;
+  overflow-y: hidden  ;
 }
 
 /* Minimal decorative circles for geometric background */
