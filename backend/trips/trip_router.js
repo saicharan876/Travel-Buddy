@@ -9,13 +9,25 @@ const {
   TripLocationPage,
   BlindTrips,
   AddParticipate,
+  DeleteTrip,
+  LeaveTrip,
+  editTrip,
 } = require("./trip_controller");
 
 // Create a new trip
-router.post("/create",Auth, createTrip);
+router.post("/create",Auth,createTrip);
 
 //Add Participate
-router.post("/join/:id",AddParticipate)
+router.post("/join/:id",Auth,AddParticipate);
+
+//Leave Trip
+router.post("/leave/:id",Auth,LeaveTrip);
+
+//Delete Trip
+router.delete("/delete/:id",Auth,DeleteTrip);
+
+//Edit Trip
+router.put("/edit/:id",Auth,editTrip);
 
 // Get all trips or by ?location=
 router.get("/", TripMainPage);

@@ -91,6 +91,67 @@ h2 {
   font-size: 0.8rem;
 }
 
+.blog-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.blog-card:hover {
+  transform: translateY(-4px);
+}
+
+.blog-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.blog-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.blog-title {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #1a73e8;
+}
+
+.blog-meta {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 2px 0;
+}
+
+.blog-location {
+  font-size: 0.9rem;
+  color: #d00;
+}
+
+.blog-main-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  object-fit: cover;
+}
+
+.blog-content {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+
 .profile-header {
   display: flex;
   gap: 40px;

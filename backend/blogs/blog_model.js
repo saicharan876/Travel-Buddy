@@ -30,6 +30,10 @@ const blogSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    author_profile_photo: {
+        type: String,
+        required: false,
+    },
 });
 
 

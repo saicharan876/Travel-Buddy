@@ -12,6 +12,19 @@ html, body {
   overflow-y: auto;
 }
 
+.main_container{
+
+   margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  overflow-x: auto;
+  overflow-y: auto;
+
+
+
+}
+
 /* Video Background */
 .video-background {
   position: fixed;
@@ -167,7 +180,7 @@ html, body {
 @import url('https://fonts.googleapis.com/css?family=Fjalla+One&display=swap');
 
 .add-trip-form {
-  max-width: 400px;
+  max-width: 1080px;
   margin: 20px auto;
   padding: 32px 24px;
   background: #f8f4e5;

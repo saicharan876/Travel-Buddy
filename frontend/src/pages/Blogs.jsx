@@ -150,10 +150,17 @@ export default function Blogs() {
                 <article key={blog._id} className="blog-card">
                   <div className="blog-header">
                     <img
-                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${blog.author || "User"}`}
+                      src={
+                        blog.author_profile_photo
+                          ? blog.author_profile_photo
+                          : `https://api.dicebear.com/7.x/initials/svg?seed=${
+                              blog.author || "User"
+                            }`
+                      }
                       alt="Avatar"
                       className="blog-avatar"
                     />
+
                     <div className="blog-meta">
                       <h4>{blog.title}</h4>
                       <p className="blog-author">

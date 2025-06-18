@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import "./Trips.css";
@@ -6,7 +6,6 @@ import TripCardImage from "./TripCardImage";
 import video from "./Generated File June 13, 2025 - 10_53PM.mp4";
 import { AuthContext } from "../context/AuthContext.jsx";
 
-// Video background component
 const VideoBackground = () => (
   <div className="video-background">
     <video autoPlay loop muted playsInline>
@@ -45,10 +44,10 @@ export default function Trips() {
   const [searchLocation, setSearchLocation] = useState("");
   const [searchCollege, setSearchCollege] = useState("");
   const [joiningTripId, setJoiningTripId] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingTripId, setEditingTripId] = useState(null);
 
-  const id = isAuthenticated && getUserId ? getUserId() : null;
+  const id = useMemo(() => {
+    return isAuthenticated && typeof getUserId === "function" ? getUserId() : null;
+  }, [isAuthenticated, getUserId]);
 
   useEffect(() => {
     if (activeTab === "create") return;
@@ -62,7 +61,10 @@ export default function Trips() {
       apiUrl += `?location=${encodeURIComponent(searchLocation)}`;
     } else if (activeTab === "college" && searchCollege.trim()) {
       apiUrl += `/college?college=${encodeURIComponent(searchCollege)}`;
-    } else if (activeTab !== "/" && !["location", "college"].includes(activeTab)) {
+    } else if (
+      activeTab !== "/" &&
+      !["location", "college"].includes(activeTab)
+    ) {
       apiUrl += `/${activeTab}`;
     }
 
@@ -70,20 +72,21 @@ export default function Trips() {
       .get(apiUrl)
       .then((res) => setTrips(res.data))
       .catch(() => {
-        const label = TABS.find((t) => t.id === activeTab)?.label || "this category";
+        const label =
+          TABS.find((t) => t.id === activeTab)?.label || "this category";
         setError(`Failed to load trips for ${label}.`);
         setTrips([]);
       })
       .finally(() => setLoading(false));
   }, [activeTab, searchLocation, searchCollege]);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
-    
+    const token = localStorage.getItem("token");
 
     const trip_form = {
       ...form,
@@ -95,7 +98,12 @@ export default function Trips() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setTrips((prev) => [res.data.trip, ...prev]);
+        const newTrip = res.data?.trip;
+        if (!newTrip || !newTrip._id) {
+          throw new Error("Invalid trip response from server");
+        }
+
+        setTrips((prev) => [newTrip, ...prev]);
         setForm({
           destination: "",
           description: "",
@@ -105,7 +113,7 @@ export default function Trips() {
           genderPreference: "",
           blind: false,
         });
-        handleJoinTrip(res.data.trip._id);
+        handleJoinTrip(newTrip._id);
         setActiveTab("/");
       })
       .catch((err) => {
@@ -124,213 +132,215 @@ export default function Trips() {
     setSearchCollege(form.college);
   };
 
-const handleJoinTrip = async (tripId) => {
-  if (!isAuthenticated || !token) {
-    alert("You must be logged in to join a trip.");
-    return;
-  }
+  const handleJoinTrip = async (tripId) => {
+    if (!isAuthenticated || !token) {
+      alert("You must be logged in to join a trip.");
+      return;
+    }
 
-  setJoiningTripId(tripId);
-  try {
-    await axios.post(
-      `http://localhost:5000/trip/join/${tripId}`,{id},
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    setJoiningTripId(tripId);
+    try {
+      await axios.post(
+        `http://localhost:5000/trip/join/${tripId}`,
+        { id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    alert("Successfully joined the trip!");
+      alert("Successfully joined the trip!");
 
-    
-    setTrips((prevTrips) =>
-      prevTrips.map((trip) =>
-        trip._id === tripId
-          ? { ...trip, participants: [...trip.participants, getUserId()] }
-          : trip
-      )
-    );
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Failed to join the trip.";
-    alert(errorMessage);
-    console.error(errorMessage);
-  } finally {
-    setJoiningTripId(null);
-  }
-};
-  const handleDeleteTrip = (tripId) => {
-  if (!window.confirm("Are you sure you want to delete this trip?")) return;
-
-  axios
-    .delete(`http://localhost:5000/trip/delete/${tripId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    .then(() => {
-      setTrips((prev) => prev.filter((t) => t._id !== tripId));
-    })
-    .catch((err) => {
-      console.error(err.response?.data || err.message);
-      alert("Failed to delete trip.");
-    });
-};
-
+      setTrips((prevTrips) =>
+        prevTrips.map((trip) =>
+          trip._id === tripId
+            ? {
+                ...trip,
+                participants: [...(trip.participants || []), id],
+              }
+            : trip
+        )
+      );
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to join the trip.";
+      alert(errorMessage);
+      console.error(errorMessage);
+    } finally {
+      setJoiningTripId(null);
+    }
+  };
 
 
   return (
     <>
       <VideoBackground />
-      <div className="trips-page-container">
-        <div className="tabs-container">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab(tab.id);
-                if (tab.id !== "location") setSearchLocation("");
-                if (tab.id !== "college") setSearchCollege("");
-              }}
-            >
-              {tab.label} {activeTab === tab.id ? `(${trips.length})` : null}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "create" && (
-          <form onSubmit={handleSubmit} className="add-trip-form">
-            <input
-              name="destination"
-              value={form.destination}
-              placeholder="Venue Name"
-              onChange={handleChange}
-              required
-            />
-            <input
-              name="location"
-              value={form.location}
-              placeholder="Location"
-              onChange={handleChange}
-              required
-            />
-            <input
-              name="description"
-              value={form.description}
-              placeholder="Description"
-              onChange={handleChange}
-              required
-            />
-            <input
-              name="college"
-              value={form.college}
-              placeholder="College Name"
-              onChange={handleChange}
-              required
-            />
-            <input
-              type="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              placeholder="Date"
-              required
-            />
-            <select
-              name="genderPreference"
-              value={form.genderPreference}
-              onChange={(e) => setForm({ ...form, genderPreference: e.target.value })}
-            >
-              <option value="">Select Gender Preference</option>
-              <option value="Any">Any</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-            <label>
-              Blind Trip:
-              <input
-                type="checkbox"
-                checked={form.blind}
-                onChange={(e) => setForm({ ...form, blind: e.target.checked })}
-              />
-            </label>
-            <button type="submit">Create Trip</button>
-          </form>
-        )}
-
-        {activeTab === "location" && (
-          <form onSubmit={handleLocationSearch} className="search-container">
-            <input
-              type="text"
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-              placeholder="Enter location"
-              required
-            />
-            <button type="submit" className="search-btn">
-              Search
-            </button>
-          </form>
-        )}
-
-        {activeTab === "college" && (
-          <form onSubmit={handleCollegeSearch} className="search-container">
-            <input
-              type="text"
-              name="college"
-              value={form.college}
-              onChange={handleChange}
-              placeholder="Enter college"
-              required
-            />
-            <button type="submit" className="search-btn">
-              Search
-            </button>
-          </form>
-        )}
-
-        {activeTab !== "create" && (
-          <div className="trips-scroll-container">
-            {loading ? (
-              <div className="loading-container">Loading...</div>
-            ) : error ? (
-              <div className="error-container">{error}</div>
-            ) : trips.length === 0 ? (
-              <p className="no-trips-message">No trips found.</p>
-            ) : (
-              <ul ref={tripsGridRef} className="trips-grid">
-                {trips.map((trip) => (
-                  <li key={trip._id} className="trip-card">
-                    <Link to={`/trip/${trip._id}`} className="card-link-wrapper">
-                      <div className="card-image-container">
-                        <TripCardImage query={trip.destination} altText={trip.destination} />
-                      </div>
-                      <div className="card-content">
-                        <div className="card-header">
-                          <h3 className="card-title">{trip.destination}</h3>
-                        </div>
-                        <p className="card-location">{trip.location}</p>
-                        <p className="card-description">
-                          {trip.description.split(" ").slice(0, 20).join(" ")}
-                          {trip.description.split(" ").length > 10 && "..."}
-                        </p>
-                        <div className="card-icons">
-                          <i className="fa-solid fa-table-tennis-paddle-ball" />
-                          <i className="fa-solid fa-person-swimming" />
-                        </div>
-                      </div>
-                    </Link>
-                    <button
-                      className="join-trip-btn"
-                      disabled={joiningTripId === trip._id}
-                      onClick={() => handleJoinTrip(trip._id)}
-                    >
-                      {joiningTripId === trip._id ? "Joining..." : "Join"}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+      <div className="main_container">
+        <div className="trips-page-container">
+          <div className="tabs-container">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  if (tab.id !== "location") setSearchLocation("");
+                  if (tab.id !== "college") setSearchCollege("");
+                }}
+              >
+                {tab.label} {activeTab === tab.id ? `(${trips.length})` : null}
+              </button>
+            ))}
           </div>
-        )}
+
+          {activeTab === "create" && (
+            <form onSubmit={handleSubmit} className="add-trip-form">
+              <input
+                name="destination"
+                value={form.destination}
+                placeholder="Venue Name"
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="location"
+                value={form.location}
+                placeholder="Location"
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="description"
+                value={form.description}
+                placeholder="Description"
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="college"
+                value={form.college}
+                placeholder="College Name"
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                placeholder="Date"
+                required
+              />
+              <select
+                name="genderPreference"
+                value={form.genderPreference}
+                onChange={(e) =>
+                  setForm({ ...form, genderPreference: e.target.value })
+                }
+              >
+                <option value="">Select Gender Preference</option>
+                <option value="Any">Any</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <label>
+                Blind Trip:
+                <input
+                  type="checkbox"
+                  checked={form.blind}
+                  onChange={(e) =>
+                    setForm({ ...form, blind: e.target.checked })
+                  }
+                />
+              </label>
+              <button type="submit">Create Trip</button>
+            </form>
+          )}
+
+          {activeTab === "location" && (
+            <form onSubmit={handleLocationSearch} className="search-container">
+              <input
+                type="text"
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                placeholder="Enter location"
+                required
+              />
+              <button type="submit" className="search-btn">
+                Search
+              </button>
+            </form>
+          )}
+
+          {activeTab === "college" && (
+            <form onSubmit={handleCollegeSearch} className="search-container">
+              <input
+                type="text"
+                name="college"
+                value={form.college}
+                onChange={handleChange}
+                placeholder="Enter college"
+                required
+              />
+              <button type="submit" className="search-btn">
+                Search
+              </button>
+            </form>
+          )}
+
+          {activeTab !== "create" && (
+            <div className="trips-scroll-container">
+              {loading ? (
+                <div className="loading-container">Loading...</div>
+              ) : error ? (
+                <div className="error-container">{error}</div>
+              ) : trips.length === 0 ? (
+                <p className="no-trips-message">No trips found.</p>
+              ) : (
+                <ul ref={tripsGridRef} className="trips-grid">
+                  {trips.map((trip) => (
+                    <li key={trip._id} className="trip-card">
+                      <Link
+                        to={`/trip/${trip._id}`}
+                        className="card-link-wrapper"
+                      >
+                        <div className="card-image-container">
+                          <TripCardImage
+                            query={trip.destination}
+                            altText={trip.destination}
+                          />
+                        </div>
+                        <div className="card-content">
+                          <div className="card-header">
+                            <h3 className="card-title">{trip.destination}</h3>
+                          </div>
+                          <p className="card-location">{trip.location}</p>
+                          <p className="card-description">
+                            {trip.description.split(" ").slice(0, 20).join(" ")}
+                            {trip.description.split(" ").length > 10 && "..."}
+                          </p>
+                          <div className="card-icons">
+                            <i className="fa-solid fa-table-tennis-paddle-ball" />
+                            <i className="fa-solid fa-person-swimming" />
+                          </div>
+                        </div>
+                      </Link>
+                      <button
+                        className="join-trip-btn"
+                        disabled={joiningTripId === trip._id}
+                        onClick={() => handleJoinTrip(trip._id)}
+                      >
+                        {joiningTripId === trip._id ? "Joining..." : "Join"}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

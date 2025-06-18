@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const SECRET = "123";
+const SECRET = "!@#$%^&*()";
 
 // function Auth(req,res,next) {
 //   next();

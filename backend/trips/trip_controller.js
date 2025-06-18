@@ -20,7 +20,7 @@ async function createTrip(req, res) {
       blind: body.blind,
       College: body.College,
       Job: body.Job,
-      creator: body.creator,
+      creator: userId,
     });
 
     return res.status(201).json({
@@ -45,16 +45,17 @@ async function getTripById(req, res) {
       return res.status(400).json({ message: "Invalid trip ID" });
     }
 
-    // Populate creator and participants (only their name)
     const trip = await TripModel.findById(tripId)
       .populate("creator", "name")
-      .populate("participants", "name");
+      .populate("participants", "name"); 
 
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
     }
 
-    
+    trip.participants = (trip.participants || []).filter(Boolean);
+
+    // Return limited data for blind trips
     if (trip.blind) {
       return res.status(200).json({
         _id: trip._id,
@@ -67,8 +68,7 @@ async function getTripById(req, res) {
       });
     }
 
-    
-    return res.status(200).json(trip);
+    return res.status(200).json(trip); 
   } catch (error) {
     console.error("Error fetching trip:", error.message);
     return res.status(500).json({
@@ -102,25 +102,30 @@ async function TripMainPage(req, res) {
 async function AddParticipate(req, res) {
   try {
     const tripId = req.params.id;
-    const { id: userId } = req.body;
+    const userId = new mongoose.Types.ObjectId(req.user.id);
 
     const trip = await TripModel.findById(tripId);
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
     }
 
-    if (trip.participants && trip.participants.includes(userId)) {
+    // Defensive null-check and avoid duplicates
+    trip.participants = trip.participants?.filter(Boolean) || [];
+
+    const alreadyJoined = trip.participants.some(
+      (p) => p?.toString() === userId.toString()
+    );
+
+    if (alreadyJoined) {
       return res.status(400).json({ message: "User already joined this trip" });
     }
 
-    trip.participants = trip.participants || [];
     trip.participants.push(userId);
-
     await trip.save();
 
     return res.status(200).json({ message: "Successfully joined the trip" });
   } catch (error) {
-    console.error("Error joining trip:", error);
+    console.error("Error joining trip:", error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -198,6 +203,107 @@ async function BlindTrips(req, res) {
   }
 }
 
+async function DeleteTrip(req, res) {
+  try {
+    const tripId = req.params.id;
+    const userId = req.user.id;
+
+    const trip = await TripModel.findById(tripId);
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    if (trip.creator.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this trip" });
+    }
+
+    await trip.deleteOne();
+
+    return res.status(200).json({ message: "Trip deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting trip:", error.message);
+    return res.status(500).json({
+      message: "Failed to delete trip",
+      error: error.message,
+    });
+  }
+}
+
+async function LeaveTrip(req, res) {
+  try {
+    const tripId = req.params.id;
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const trip = await TripModel.findById(tripId);
+
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    const originalLength = trip.participants.length;
+
+    trip.participants = trip.participants.filter(
+      (p) => p && p.toString() !== userId.toString()
+    );
+
+    if (trip.participants.length === originalLength) {
+      return res
+        .status(403)
+        .json({ message: "You are not a participant of this trip" });
+    }
+
+    await trip.save();
+    return res.status(200).json({ message: "You have left the trip" });
+  } catch (error) {
+    console.error("Error leaving trip:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Failed to leave trip", error: error.message });
+  }
+}
+
+async function editTrip(req, res) {
+  try {
+    const tripId = req.params.id;
+    const userId = req.user.id;
+    const {
+      destination,
+      location,
+      description,
+      date,
+      genderPreference,
+      blind,
+    } = req.body;
+
+    const trip = await TripModel.findById(tripId);
+
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    
+    if (trip.creator.toString() !== userId) {
+      return res.status(403).json({ message: "You are not the creator of this trip" });
+    }
+
+    
+    trip.destination = destination || trip.destination;
+    trip.location = location || trip.location;
+    trip.description = description || trip.description;
+    trip.date = date || trip.date;
+    trip.genderPreference = genderPreference || trip.genderPreference;
+    trip.blind = typeof blind === 'boolean' ? blind : trip.blind;
+
+    await trip.save();
+
+    return res.status(200).json({ message: "Trip updated successfully", trip });
+  } catch (error) {
+    console.error("Error updating trip:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 module.exports = {
   createTrip,
   getTripById,
@@ -206,4 +312,7 @@ module.exports = {
   TripLocationPage,
   BlindTrips,
   AddParticipate,
+  DeleteTrip,
+  LeaveTrip,
+  editTrip,
 };
