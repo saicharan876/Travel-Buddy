@@ -7,6 +7,8 @@ function Profile() {
   const { id: userId } = useParams();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [photoInput, setPhotoInput] = useState("");
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -26,6 +28,32 @@ function Profile() {
     fetchUserData();
   }, [userId]);
 
+  const handlePhotoUpdate = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(
+        `http://localhost:5000/user/${userId}/update-photo-url`,
+        { profilePhoto: photoInput },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Profile photo updated!");
+      setUserData((prev) => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          profilePhoto: res.data.profilePhoto,
+        },
+      }));
+      setPhotoInput("");
+      setImageError(false);
+    } catch (err) {
+      console.error("Error updating photo:", err);
+      alert("Failed to update profile photo");
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!userData) return <div>User not found.</div>;
 
@@ -34,14 +62,60 @@ function Profile() {
   return (
     <div className="profile-container">
       <h1>Profile: {user.name}</h1>
+
       <div className="profile-header">
+  <img
+    src={user.profilePhoto ? `${user.profilePhoto}?t=${Date.now()}` : "/default-avatar.png"}
+    alt="Profile"
+    className="profile-photo"
+    onError={(e) => {
+      e.target.onerror = null;
+      e.target.src = "/default-avatar.png";
+    }}
+  />
+
+  <div className="profile-info">
+    <h2>{user.name}</h2>
+    <p>{user.email}</p>
+
+    <div className="profile-photo-upload">
+      <input
+        type="text"
+        placeholder="Enter image URL (ends with .jpg/.png)"
+        value={photoInput}
+        onChange={(e) => setPhotoInput(e.target.value)}
+      />
+
+      {photoInput && /\.(jpeg|jpg|png|gif|webp)$/i.test(photoInput) ? (
         <img
-          src={user.profilePhoto || "/default-avatar.png"}
-          alt="Profile"
-          className="profile-photo"
+          src={photoInput}
+          alt="Preview"
+          style={{
+            width: 100,
+            height: 100,
+            borderRadius: "50%",
+            marginTop: "10px",
+            border: "2px solid #ccc",
+            objectFit: "cover",
+          }}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/default-avatar.png";
+          }}
         />
-        <h1>Profile: {user.name}</h1>
-      </div>
+      ) : photoInput ? (
+        <p style={{ color: "red", fontSize: "0.9rem" }}>
+          ⚠️ Invalid image URL format
+        </p>
+      ) : null}
+
+      <button className="upload-label" onClick={handlePhotoUpdate}>
+        Update Photo
+      </button>
+    </div>
+  </div>
+</div>
+
 
       <h2>Trips Created</h2>
       <div className="card-container">

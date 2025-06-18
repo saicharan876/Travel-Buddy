@@ -45,6 +45,9 @@ export default function Trips() {
   const [searchLocation, setSearchLocation] = useState("");
   const [searchCollege, setSearchCollege] = useState("");
   const [joiningTripId, setJoiningTripId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingTripId, setEditingTripId] = useState(null);
+
   const id = isAuthenticated && getUserId ? getUserId() : null;
 
   useEffect(() => {
@@ -75,7 +78,7 @@ export default function Trips() {
   }, [activeTab, searchLocation, searchCollege]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -154,6 +157,22 @@ const handleJoinTrip = async (tripId) => {
     setJoiningTripId(null);
   }
 };
+  const handleDeleteTrip = (tripId) => {
+  if (!window.confirm("Are you sure you want to delete this trip?")) return;
+
+  axios
+    .delete(`http://localhost:5000/trip/delete/${tripId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then(() => {
+      setTrips((prev) => prev.filter((t) => t._id !== tripId));
+    })
+    .catch((err) => {
+      console.error(err.response?.data || err.message);
+      alert("Failed to delete trip.");
+    });
+};
+
 
 
   return (

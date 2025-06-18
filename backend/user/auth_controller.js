@@ -85,4 +85,27 @@ async function getUser(req, res) {
   }
 }
 
-module.exports = { signup, login, getUser };
+
+async function updateProfilePhoto(req, res) {
+  try {
+    const userId = req.params.id;
+    const { profilePhoto } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { profilePhoto },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({
+      msg: "Profile photo updated",
+      profilePhoto: user.profilePhoto,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+}
+
+module.exports = { signup, login, getUser,updateProfilePhoto, };

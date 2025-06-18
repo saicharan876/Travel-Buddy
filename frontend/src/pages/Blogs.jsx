@@ -77,10 +77,7 @@ export default function Blogs() {
           author: "",
           image: "",
         });
-
-        
         fetchBlogs();
-
       })
       .catch((err) => {
         console.error(err);
@@ -101,62 +98,87 @@ export default function Blogs() {
       <div className="blogs-container">
         <h2 className="blogs-title">Travel Blogs</h2>
 
-        <form onSubmit={handleSubmit} className="blog-form">
-          <h3>Share Your Story</h3>
-          {formError && <p className="form-error">{formError}</p>}
+        <div className="blog-grid">
+          <div className="blog-form-wrapper">
+            <form onSubmit={handleSubmit} className="blog-form">
+              <h3>Share Your Story</h3>
+              {formError && <p className="form-error">{formError}</p>}
 
-          <input
-            name="title"
-            value={form.title}
-            placeholder="Blog Title"
-            onChange={handleChange}
-            required
-          />
-          <input
-            name="destination"
-            value={form.destination}
-            placeholder="Destination"
-            onChange={handleChange}
-            required
-          />
-          <input
-            name="author"
-            value={form.author}
-            placeholder="Author Name"
-            onChange={handleChange}
-            required
-          />
-          <input
-            name="image"
-            value={form.image}
-            placeholder="Image URL (optional)"
-            onChange={handleChange}
-          />
-          <textarea
-            name="content"
-            value={form.content}
-            placeholder="Your story..."
-            onChange={handleChange}
-            required
-          />
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Adding Blog..." : "Add Blog"}
-          </button>
-        </form>
+              <input
+                name="title"
+                value={form.title}
+                placeholder="Blog Title"
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="destination"
+                value={form.destination}
+                placeholder="Destination"
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="author"
+                value={form.author}
+                placeholder="Author Name"
+                onChange={handleChange}
+                required
+              />
+              <input
+                name="image"
+                value={form.image}
+                placeholder="Image URL (optional)"
+                onChange={handleChange}
+              />
+              <textarea
+                name="content"
+                value={form.content}
+                placeholder="Your story..."
+                onChange={handleChange}
+                required
+              />
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Adding Blog..." : "Add Blog"}
+              </button>
+            </form>
+          </div>
 
-        <ul className="blog-list">
-          {blogs.map((blog) => (
-            <li key={blog._id} className="blog-card">
-              {blog.image && (
-                <img src={blog.image} alt={blog.title} className="blog-image" />
-              )}
-              <h4>{blog.title}</h4>
-              <p><strong>Destination:</strong> {blog.destination}</p>
-              <p><strong>Author:</strong> {blog.author}</p>
-              <p>{blog.content}</p>
-            </li>
-          ))}
-        </ul>
+          <div className="blog-list-wrapper">
+            <div className="blog-list">
+              {blogs.map((blog) => (
+                <article key={blog._id} className="blog-card">
+                  <div className="blog-header">
+                    <img
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${blog.author || "User"}`}
+                      alt="Avatar"
+                      className="blog-avatar"
+                    />
+                    <div className="blog-meta">
+                      <h4>{blog.title}</h4>
+                      <p className="blog-author">
+                        by {blog.author} &middot;{" "}
+                        <span className="blog-date">
+                          {new Date(blog.createdAt).toLocaleDateString()}
+                        </span>
+                      </p>
+                      <p className="blog-destination">📍 {blog.destination}</p>
+                    </div>
+                  </div>
+
+                  {blog.image && (
+                    <img
+                      src={blog.image || "/default-travel.jpg"}
+                      alt={blog.title}
+                      className="blog-image"
+                    />
+                  )}
+                  <p>{blog.content}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
