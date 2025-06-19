@@ -20,7 +20,7 @@ body {
   position: relative;
 }
 
-body::before,
+/* body::before,
 body::after {
   content: '';
   position: absolute;
@@ -43,7 +43,7 @@ body::after {
   background: var(--accent);
   bottom: -150px;
   right: -150px;
-}
+} */
 
 .signup-container {
   height: 100vh;

@@ -121,97 +121,102 @@ export default function TripDetail() {
   );
 
   return (
-    <div className="trip-detail-page-container">
-      <Link to="/trips" className="back-link">
-        ← Back to All Venues
-      </Link>
+    <div className="trip-scroll-wrapper">
+      <div className="trip-detail-page-container">
+        <Link to="/trips" className="back-link">
+          ← Back to All Venues
+        </Link>
 
-      <div className="trip-detail-card">
-        <TripCardImage query={trip.destination} altText={trip.destination} />
+        <div className="trip-detail-card">
+          <TripCardImage query={trip.destination} altText={trip.destination} />
 
-        <div className="trip-detail-content">
-          <h1 className="trip-detail-title">{trip.destination}</h1>
-          <p>
-            <strong>Location:</strong> {trip.location}
-          </p>
-          <p>{trip.description}</p>
-          <p>
-            <strong>Date:</strong> {formattedDate}
-          </p>
-          <p>
-            <strong>Gender Preference:</strong>{" "}
-            {trip.genderPreference || "No preference"}
-          </p>
-          <p>
-            <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
-          </p>
-          <p>
-            <strong>Creator:</strong>{" "}
-            {trip.creator?.name || trip.creator || "Not available"}
-          </p>
+          <div className="trip-detail-content">
+            <h1 className="trip-detail-title">{trip.destination}</h1>
+            <p>
+              <strong>Location:</strong> {trip.location}
+            </p>
+            <p>{trip.description}</p>
+            <p>
+              <strong>Date:</strong> {formattedDate}
+            </p>
+            <p>
+              <strong>Gender Preference:</strong>{" "}
+              {trip.genderPreference || "No preference"}
+            </p>
+            <p>
+              <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
+            </p>
+            <p>
+              <strong>Creator:</strong>{" "}
+              {trip.creator?.name || trip.creator || "Not available"}
+            </p>
 
-          <p>
-            <strong>Participants:</strong>{" "}
-            {trip.participants?.length > 0
-              ? trip.participants.map((p, idx) => (
-                  <span key={p._id}>
-                    <Link
-                      to={`/user/${p._id}`}
-                      style={{ color: "#4f46e5", textDecoration: "underline" }}
-                    >
-                      {p.name}
-                    </Link>
-                    {idx !== trip.participants.length - 1 && ", "}
-                  </span>
-                ))
-              : "No participants yet"}
-          </p>
+            <p>
+              <strong>Participants:</strong>{" "}
+              {trip.participants?.length > 0
+                ? trip.participants.map((p, idx) => (
+                    <span key={p._id}>
+                      <Link
+                        to={`/user/${p._id}`}
+                        style={{
+                          color: "#4f46e5",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {p.name}
+                      </Link>
+                      {idx !== trip.participants.length - 1 && ", "}
+                    </span>
+                  ))
+                : "No participants yet"}
+            </p>
+          </div>
         </div>
+
+        {userId && creatorId === userId && (
+          <div className="trip-actions">
+            <button
+              onClick={() => navigate(`/trip/edit/${trip._id}`)}
+              className="edit-button"
+            >
+              ✏️ Edit Trip
+            </button>
+            <button
+              onClick={() => handleDeleteTrip(trip._id)}
+              className="delete-button"
+            >
+              🗑️ Delete Trip
+            </button>
+          </div>
+        )}
+
+        {userId && creatorId !== userId && (
+          <div className="join-button-container">
+            {!isParticipant ? (
+              <button
+                className="join-button"
+                onClick={() => handleJoinTrip(trip._id)}
+              >
+                ✅ Join Trip
+              </button>
+            ) : (
+              <button
+                className="leave-button"
+                onClick={() => handleLeaveTrip(trip._id)}
+              >
+                ❌ Leave Trip
+              </button>
+            )}
+          </div>
+        )}
+
+        {userId && (creatorId === userId || isParticipant) && (
+          <div className="chatbox-container">
+            <h2>Chat </h2>
+            <Chatbox tripId={trip._id} userId={userId} receiverId={creatorId} />
+          </div>
+        )}
       </div>
-
-      {userId && creatorId === userId && (
-        <div className="trip-actions">
-          <button
-            onClick={() => navigate(`/trip/edit/${trip._id}`)}
-            className="edit-button"
-          >
-            ✏️ Edit Trip
-          </button>
-          <button
-            onClick={() => handleDeleteTrip(trip._id)}
-            className="delete-button"
-          >
-            🗑️ Delete Trip
-          </button>
-        </div>
-      )}
-
-      {userId && creatorId !== userId && (
-        <div className="join-button-container">
-          {!isParticipant ? (
-            <button
-              className="join-button"
-              onClick={() => handleJoinTrip(trip._id)}
-            >
-              ✅ Join Trip
-            </button>
-          ) : (
-            <button
-              className="leave-button"
-              onClick={() => handleLeaveTrip(trip._id)}
-            >
-              ❌ Leave Trip
-            </button>
-          )}
-        </div>
-      )}
-
-      {userId && (creatorId === userId || isParticipant) && (
-        <div className="chatbox-container">
-          <h2>Chat with the Trip Creator</h2>
-          <Chatbox tripId={trip._id} userId={userId} receiverId={creatorId} />
-        </div>
-      )}
     </div>
   );
 }

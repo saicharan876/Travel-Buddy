@@ -1,3 +1,12 @@
+
+html, body {
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
 .trip-detail-page-container {
   max-width: 1280px;
   margin: 3rem auto;
@@ -7,8 +16,9 @@
   background: #f9fafb;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  max-height: 90vh;
   overflow-y: auto;
+  
+  
 }
 
 /* Custom Scrollbar */
@@ -25,6 +35,28 @@
   border-radius: 8px;
   border: 2px solid #e5e7eb;
 }
+
+.trip-scroll-wrapper {
+  /* margin-top: 3rem; */
+  max-height: 90vh;
+  width: 100vw;
+  overflow-y: auto;
+  padding-right: 2.5rem;
+  display: flex;
+  position: static;
+  padding-right: 10px;
+}
+
+/* optional scrollbar styling */
+.trip-scroll-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trip-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #a5b4fc;
+  border-radius: 8px;
+}
+
 
 /* Back Link */
 .back-link {
