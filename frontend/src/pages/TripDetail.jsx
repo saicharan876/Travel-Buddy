@@ -16,86 +16,200 @@ export default function TripDetail() {
   const userId = isAuthenticated && getUserId ? getUserId() : null;
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/trip/${id}`)
-      .then(res => setTrip(res.data))
-      .catch(() => setError("Failed to load trip"))
+    axios
+      .get(`http://localhost:5000/trip/${id}`)
+      .then((res) => {
+        setTrip(res.data);
+        setError(null);
+      })
+      .catch(() => {
+        setError("Failed to load trip details");
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <><p>{error}</p><Link to="/trips">Back</Link></>;
+  const handleDeleteTrip = (tripId) => {
+    const token = localStorage.getItem("token");
+    if (!window.confirm("Are you sure you want to delete this trip?")) return;
+
+    axios
+      .delete(`http://localhost:5000/trip/delete/${tripId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(() => {
+        alert("Trip deleted successfully.");
+        navigate("/trips");
+      })
+      .catch((err) => {
+        console.error(err.response?.data || err.message);
+        alert("Failed to delete trip.");
+      });
+  };
+
+  const handleJoinTrip = async (tripId) => {
+    const token = localStorage.getItem("token");
+    if (!isAuthenticated || !token) {
+      alert("You must be logged in to join a trip.");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `http://localhost:5000/trip/join/${tripId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Successfully joined the trip!");
+      setTrip((prev) => ({
+        ...prev,
+        participants: [...(prev.participants || []), userId],
+      }));
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to join the trip.";
+      alert(errorMessage);
+      console.error(errorMessage);
+    }
+  };
+
+  const handleLeaveTrip = (tripId) => {
+    const token = localStorage.getItem("token");
+    axios
+      .post(
+        `http://localhost:5000/trip/leave/${tripId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then(() => {
+        alert("You have left the trip.");
+        window.location.reload();
+        navigate("/trips");
+      })
+      .catch((err) => {
+        console.error(err.response?.data || err.message);
+        alert("Failed to leave trip.");
+      });
+  };
+
+  if (loading) return <p>Loading trip details...</p>;
+  if (error)
+    return (
+      <>
+        <p>{error}</p>
+        <Link to="/trips">Back to trips</Link>
+      </>
+    );
+
+  const formattedDate = trip.date
+    ? new Date(trip.date).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Date not specified";
 
   const creatorId = trip.creator?._id || trip.creator;
   const isParticipant = trip.participants?.some(
-    p => (p._id || p) === userId
+    (p) => (typeof p === "object" ? p._id : p) === userId
   );
-  const canViewFull = !trip.blind || creatorId === userId || isParticipant;
 
   return (
     <div className="trip-detail-page-container">
-      <Link to="/trips" className="back-link">← Back</Link>
+      <Link to="/trips" className="back-link">
+        ← Back to All Venues
+      </Link>
 
       <div className="trip-detail-card">
         <TripCardImage query={trip.destination} altText={trip.destination} />
+
         <div className="trip-detail-content">
           <h1 className="trip-detail-title">{trip.destination}</h1>
-          <p><strong>Date:</strong> {new Date(trip.date).toLocaleDateString()}</p>
+          <p>
+            <strong>Location:</strong> {trip.location}
+          </p>
           <p>{trip.description}</p>
+          <p>
+            <strong>Date:</strong> {formattedDate}
+          </p>
+          <p>
+            <strong>Gender Preference:</strong>{" "}
+            {trip.genderPreference || "No preference"}
+          </p>
+          <p>
+            <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>Creator:</strong>{" "}
+            {trip.creator?.name || trip.creator || "Not available"}
+          </p>
 
-          {canViewFull ? (
-            <>
-              <p><strong>Location:</strong> {trip.location}</p>
-              <p><strong>Gender Preference:</strong> {trip.genderPreference || "Any"}</p>
-              <p><strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}</p>
-              <p><strong>Creator:</strong> {trip.creator?.name || trip.creator}</p>
-              <p><strong>Participants:</strong>{" "}
-                {trip.participants && trip.participants.length > 0
-                  ? trip.participants.map((p,i) => (
-                      <Link key={p._id || p} to={`/user/${p._id || p}`}>
-                        {p.name || p}
-                      </Link>
-                    )).reduce((prev, curr) => [prev, ', ', curr])
-                  : "None yet"}
-              </p>
-            </>
-          ) : (
-            <p><em>This is a blind trip – full details are hidden until you join.</em></p>
-          )}
+          <p>
+            <strong>Participants:</strong>{" "}
+            {trip.participants?.length > 0
+              ? trip.participants.map((p, idx) => (
+                  <span key={p._id}>
+                    <Link
+                      to={`/user/${p._id}`}
+                      style={{ color: "#4f46e5", textDecoration: "underline" }}
+                    >
+                      {p.name}
+                    </Link>
+                    {idx !== trip.participants.length - 1 && ", "}
+                  </span>
+                ))
+              : "No participants yet"}
+          </p>
         </div>
       </div>
 
-      {creatorId === userId && (
+      {userId && creatorId === userId && (
         <div className="trip-actions">
-          <button className="delete-button" onClick={() => {
-            if (window.confirm("Delete this trip?")) axios.delete(`/trip/delete/${id}`, { headers:{Authorization:`Bearer ${localStorage.getItem("token")}`} })
-              .then(() => navigate("/trips"));
-          }}>🗑️ Delete Trip</button>
+          <button
+            onClick={() => navigate(`/trip/edit/${trip._id}`)}
+            className="edit-button"
+          >
+            ✏️ Edit Trip
+          </button>
+          <button
+            onClick={() => handleDeleteTrip(trip._id)}
+            className="delete-button"
+          >
+            🗑️ Delete Trip
+          </button>
         </div>
       )}
 
-      {creatorId !== userId && (
+      {userId && creatorId !== userId && (
         <div className="join-button-container">
           {!isParticipant ? (
-            <button className="join-button" onClick={() => {
-              axios.post(`/trip/join/${id}`, {}, { headers:{Authorization:`Bearer ${localStorage.getItem("token")}`} })
-                .then(() => setTrip(prev => ({
-                  ...prev,
-                  participants: [...(prev.participants||[]), userId]
-                })));
-            }}>✅ Join Trip</button>
+            <button
+              className="join-button"
+              onClick={() => handleJoinTrip(trip._id)}
+            >
+              ✅ Join Trip
+            </button>
           ) : (
-            <button className="leave-button" onClick={() => {
-              axios.post(`/trip/leave/${id}`, {}, { headers:{Authorization:`Bearer ${localStorage.getItem("token")}`} })
-                .then(() => navigate("/trips"));
-            }}>❌ Leave Trip</button>
+            <button
+              className="leave-button"
+              onClick={() => handleLeaveTrip(trip._id)}
+            >
+              ❌ Leave Trip
+            </button>
           )}
         </div>
       )}
 
-      {(creatorId === userId || isParticipant) && (
+      {userId && (creatorId === userId || isParticipant) && (
         <div className="chatbox-container">
           <h2>Chat with the Trip Creator</h2>
-          <Chatbox tripId={id} userId={userId} receiverId={creatorId} />
+          <Chatbox tripId={trip._id} userId={userId} receiverId={creatorId} />
         </div>
       )}
     </div>
