@@ -10,18 +10,18 @@
   --shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-body {
+/* body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
   background: radial-gradient(circle at top right, #e8f1f8, #f4f7fa);
   color: var(--text-dark);
   position: relative;
-  overflow-y: hidden  ;
-}
+  overflow-y: hidden    ; 
+} */
 
 /* Minimal decorative circles for geometric background */
-body::before,
+/* body::before,
 body::after {
   content: '';
   position: absolute;
@@ -44,7 +44,7 @@ body::after {
   background: var(--accent);
   bottom: -150px;
   right: -150px;
-}
+} */
 
 .login-container {
   height: 100vh;

@@ -153,6 +153,7 @@ export default function TripDetail() {
   );
 
   return (
+<<<<<<< HEAD
     <div className="trip-detail-floating-container">
       {coords && (
         <MapContainer center={[coords.lat, coords.lng]} zoom={12} style={{ height: "400px", width: "100%" }}>
@@ -198,6 +199,72 @@ export default function TripDetail() {
               ✏️ Edit Trip
             </button>
             <button onClick={() => handleDeleteTrip(trip._id)} className="delete-button">
+=======
+    <div className="trip-scroll-wrapper">
+      <div className="trip-detail-page-container">
+        <Link to="/trips" className="back-link">
+          ← Back to All Venues
+        </Link>
+
+        <div className="trip-detail-card">
+          <TripCardImage query={trip.destination} altText={trip.destination} />
+
+          <div className="trip-detail-content">
+            <h1 className="trip-detail-title">{trip.destination}</h1>
+            <p>
+              <strong>Location:</strong> {trip.location}
+            </p>
+            <p>{trip.description}</p>
+            <p>
+              <strong>Date:</strong> {formattedDate}
+            </p>
+            <p>
+              <strong>Gender Preference:</strong>{" "}
+              {trip.genderPreference || "No preference"}
+            </p>
+            <p>
+              <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
+            </p>
+            <p>
+              <strong>Creator:</strong>{" "}
+              {trip.creator?.name || trip.creator || "Not available"}
+            </p>
+
+            <p>
+              <strong>Participants:</strong>{" "}
+              {trip.participants?.length > 0
+                ? trip.participants.map((p, idx) => (
+                    <span key={p._id}>
+                      <Link
+                        to={`/user/${p._id}`}
+                        style={{
+                          color: "#4f46e5",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {p.name}
+                      </Link>
+                      {idx !== trip.participants.length - 1 && ", "}
+                    </span>
+                  ))
+                : "No participants yet"}
+            </p>
+          </div>
+        </div>
+
+        {userId && creatorId === userId && (
+          <div className="trip-actions">
+            <button
+              onClick={() => navigate(`/trip/edit/${trip._id}`)}
+              className="edit-button"
+            >
+              ✏️ Edit Trip
+            </button>
+            <button
+              onClick={() => handleDeleteTrip(trip._id)}
+              className="delete-button"
+            >
+>>>>>>> 8c13f79afd8e04b52aafdf0eae90cde7509eb6c4
               🗑️ Delete Trip
             </button>
           </div>
@@ -206,11 +273,25 @@ export default function TripDetail() {
         {userId && creatorId !== userId && (
           <div className="join-button-container">
             {!isParticipant ? (
+<<<<<<< HEAD
               <button className="join-button" onClick={() => handleJoinTrip(trip._id)}>
                 ✅ Join Trip
               </button>
             ) : (
               <button className="leave-button" onClick={() => handleLeaveTrip(trip._id)}>
+=======
+              <button
+                className="join-button"
+                onClick={() => handleJoinTrip(trip._id)}
+              >
+                ✅ Join Trip
+              </button>
+            ) : (
+              <button
+                className="leave-button"
+                onClick={() => handleLeaveTrip(trip._id)}
+              >
+>>>>>>> 8c13f79afd8e04b52aafdf0eae90cde7509eb6c4
                 ❌ Leave Trip
               </button>
             )}
@@ -219,7 +300,11 @@ export default function TripDetail() {
 
         {userId && (creatorId === userId || isParticipant) && (
           <div className="chatbox-container">
+<<<<<<< HEAD
             <h2>Chat with the Trip Creator</h2>
+=======
+            <h2>Chat </h2>
+>>>>>>> 8c13f79afd8e04b52aafdf0eae90cde7509eb6c4
             <Chatbox tripId={trip._id} userId={userId} receiverId={creatorId} />
           </div>
         )}
