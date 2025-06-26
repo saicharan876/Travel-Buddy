@@ -10,39 +10,12 @@ body {
   background: #f9fafb;
 }
 
-/* Floating Elliptical Map at Bottom-Right */
-.trip-map-floating-bottom {
-  position: fixed;
-  top: 40px;
-  right: 0;
-  width: 700px;
-  height: 100%;
-  z-index: 100;
-  pointer-events: auto;
-}
-
-.trip-map-ellipse {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  clip-path: ellipse(50% 100% at 100% 50%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-.trip-map-floating-bottom .leaflet-container {
-  width: 100%;
-  height: 100%;
-  transform: translateX(20%);
-}
-
 /* Main trip detail container */
 .trip-detail-page-container {
   width: 100%;
   max-width: 850px;
   margin: 5rem auto 4rem;
   padding: 3rem 2rem;
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #222;
   background: white;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -51,11 +24,6 @@ body {
 }
 
 /* Trip content */
-.trip-detail-card {
-  width: 100%;
-  margin: 0;
-}
-
 .trip-detail-content {
   display: flex;
   flex-direction: column;
@@ -70,12 +38,15 @@ body {
   margin: 0;
 }
 
-.trip-detail-location,
-.trip-detail-description {
-  font-size: 1.125rem;
-  color: #475569;
-  line-height: 1.6;
+/* Back link */
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
 }
+.back-link:hover { color: #4338ca; }
 
 /* Buttons */
 .trip-actions,
@@ -94,30 +65,37 @@ button {
   cursor: pointer;
   transition: transform 0.2s ease;
 }
-
 button:hover {
   transform: scale(1.05);
 }
-
-.edit-button { background: #2563eb; color: #fff; }
+.edit-button   { background: #2563eb; color: #fff; }
 .delete-button { background: #dc2626; color: #fff; }
-.join-button { background: #4f46e5; color: #fff; }
-.leave-button { background: #e11d48; color: #fff; }
+.join-button   { background: #4f46e5; color: #fff; }
+.leave-button  { background: #e11d48; color: #fff; }
 
-/* Back link */
-.back-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
+/* Participants link */
+.participant-link {
   color: #4f46e5;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
-.back-link:hover { color: #4338ca; }
+
+.trip-map-inline {
+  width: 100%;
+  height: 300px;            
+  margin: 2rem 0 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-container-inline {
+  width: 100%;
+  height: 100%;              
+}
 
 /* Chatbox */
 .chatbox-container {
-  margin-top: 2rem;
   border-top: 1px solid #e5e7eb;
   padding-top: 1rem;
 }
@@ -127,8 +105,5 @@ button:hover {
   .trip-detail-page-container {
     margin: 2rem 1rem;
     padding: 2rem 1rem;
-  }
-  .trip-map-floating-bottom {
-    display: none;
   }
 }

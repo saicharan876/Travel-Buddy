@@ -1,8 +1,6 @@
 /* Global reset */
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
 
-
-
 html, body {
   margin: 0;
   padding: 0;
@@ -12,17 +10,13 @@ html, body {
   overflow-y: auto;
 }
 
-.main_container{
-
-   margin: 0;
+.main_container {
+  margin: 0;
   padding: 0;
   height: 100%;
   font-family: 'Segoe UI', sans-serif;
   overflow-x: auto;
   overflow-y: auto;
-
-
-
 }
 
 /* Video Background */
@@ -34,35 +28,31 @@ html, body {
   z-index: -2;
   overflow: hidden;
 }
-
 .video-background video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .video-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.3); /* dark overlay */
+  background: rgba(0,0,0,0.3);
   z-index: -1;
 }
 
 /* Main container */
 .trips-page-container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 2rem auto;
   padding: 2rem;
   background: rgba(11, 11, 11, 0.162);
   backdrop-filter: blur(15px);
   border-radius: 20px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  z-index: 1;
   position: relative;
-  margin-top: 2rem;
-  
+  z-index: 1;
 }
 
 /* Tabs */
@@ -73,7 +63,6 @@ html, body {
   margin-bottom: 2rem;
   flex-wrap: wrap;
 }
-
 .tab-button {
   background: rgba(9, 0, 0, 0.601);
   border: none;
@@ -84,29 +73,21 @@ html, body {
   font-weight: bold;
   transition: background 0.2s ease-in-out;
 }
-
 .tab-button.active {
   background: #fff;
   color: #ff4c60;
 }
 
+/* Scroll container */
 .trips-scroll-container {
   padding-left: 10px;
   max-height: 75vh;
   overflow-y: auto;
-
-  /* For Firefox */
-  scroll-padding: 10px;
   scrollbar-width: thin;
   scrollbar-color: #4a90e2 #f0f0f0;
-
-  /* For WebKit browsers (Chrome, Safari, Edge) */
 }
 
-
-
-
-
+/* Trip grid */
 .trips-grid {
   display: grid;
   gap: 2rem;
@@ -125,23 +106,19 @@ html, body {
   display: flex;
   flex-direction: column;
 }
-
 .trip-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
 }
-
 .card-image-container img {
   width: 100%;
   height: 200px;
   object-fit: cover;
   transition: transform 0.4s ease;
 }
-
 .trip-card:hover .card-image-container img {
   transform: scale(1.05);
 }
-
 .card-content {
   font-family: "Bebas Neue", sans-serif;
   padding: 1.2rem;
@@ -149,36 +126,23 @@ html, body {
   flex-direction: column;
   gap: 0.6rem;
 }
-
 .card-title {
-  font-family: "Bebas Neue", sans-serif;
   margin: 0;
-  padding: 0;
   font-size: 3rem;
-  font-weight: 600;
   color: #0a0202;
 }
-
-.card-subtitle {
-  font-family: "Bebas Neue", sans-serif;
-  margin:0 px;
-  padding: 0;
+.card-location {
   color: #777;
   font-size: 1.5rem;
 }
-
 .card-description {
-  font-family: "Bebas Neue", sans-serif;;
   color: #555;
   font-size: 1.25rem;
   line-height: 1.5;
 }
 
-
-
-
+/* Add-trip form */
 @import url('https://fonts.googleapis.com/css?family=Fjalla+One&display=swap');
-
 .add-trip-form {
   max-width: 1080px;
   margin: 20px auto;
@@ -193,146 +157,108 @@ html, body {
   gap: 20px;
   color: #2a293e;
 }
-
 .add-trip-form input[type="text"],
 .add-trip-form input[type="date"],
 .add-trip-form select,
 .add-trip-form input:not([type="checkbox"]) {
-  display: block;
   width: 100%;
   font-size: 14pt;
-  line-height: 28pt;
   margin-bottom: 28px;
   border: none;
   border-bottom: 5px solid #000;
   background: #f8f4e5;
   padding-left: 8px;
   outline: none;
-  color: #000;
-  min-width: 250px;
   transition: border-color 0.3s ease;
 }
-
-.add-trip-form input[type="text"]:focus,
-.add-trip-form input[type="date"]:focus,
-.add-trip-form select:focus,
-.add-trip-form input:not([type="checkbox"]):focus {
+.add-trip-form input:focus,
+.add-trip-form select:focus {
   border-bottom: 5px solid #ffa580;
 }
-
 .add-trip-form label {
   font-size: 14pt;
   display: flex;
   align-items: center;
   gap: 10px;
-  user-select: none;
 }
-
-.add-trip-form input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  margin: 0;
-}
-
 .add-trip-form button {
-  display: block;
   margin: 0 auto;
-  line-height: 28pt;
   padding: 0 24px;
   background: #ffa580;
-  letter-spacing: 2px;
   border: 1px solid #000;
-  box-shadow: 3px 3px 1px 1px #95a4ff, 3px 3px 1px 2px #000;
+  box-shadow: 3px 3px 1px #95a4ff, 3px 3px 1px 2px #000;
   font-family: 'Fjalla One', sans-serif;
-  font-weight: 700;
   font-size: 16pt;
   color: #2a293e;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
   border-radius: 6px;
-  user-select: none;
 }
-
 .add-trip-form button:hover {
   background: #000;
   color: #fff;
-  border-color: #000;
 }
 
-.add-trip-form::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
-}
-
-.trip-grid::-webkit-scrollbar {
-  display: none;             /* Chrome, Safari, Edge */
-}
-
-::selection {
-  background: #ffc8ff;
-}
-
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  border-bottom: 5px solid #95a4ff !important;
-  -webkit-text-fill-color: #2a293e !important;
-  -webkit-box-shadow: 0 0 0px 1000px #f8f4e5 inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
+/* Search container */
 .search-container {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 10px;
   padding: 12px 20px;
-  background-color: #ffffff;
+  background: #fff;
   border-radius: 50px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  width: 100%;
   max-width: 500px;
   margin: 30px auto;
-  transition: box-shadow 0.3s ease;
 }
-
-.search-container:hover {
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
-}
-
-.search-container input[type="text"] {
+.search-container input {
   flex: 1;
   border: none;
   outline: none;
   font-size: 16px;
   padding: 10px 14px;
   border-radius: 50px;
-  background-color: transparent;
-  color: #333;
+  background: transparent;
 }
-
-.search-container input[type="text"]::placeholder {
-  color: #aaa;
-  font-weight: 400;
-}
-
 .search-btn {
-  background-color: #4a90e2;
+  background: #4a90e2;
   border: none;
   color: #fff;
   padding: 10px 20px;
   border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
+}
+.search-btn:hover { background: #357ABD; transform: translateY(-1px); }
+.search-btn:active { background: #2a5d8c; transform: translateY(1px); }
+
+/* Hide scrollbars */
+.add-trip-form::-webkit-scrollbar,
+.trip-grid::-webkit-scrollbar { display: none; }
+.trip-grid { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Selection highlight */
+::selection { background: #ffc8ff; }
+
+/* Autofill styling */
+input:-webkit-autofill { 
+  -webkit-text-fill-color: #2a293e !important;
+  box-shadow: 0 0 0px 1000px #f8f4e5 inset !important;
 }
 
-.search-btn:hover {
-  background-color: #357ABD;
-  transform: translateY(-1px);
+/* --- NEW: Map at bottom of page --- */
+.trips-map-inline {
+  width: 100%;
+  margin: 2rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.trips-map-inline .leaflet-container {
+  width: 100% !important;
+  height: 400px; /* match the inline style in JSX */
 }
 
-.search-btn:active {
-  background-color: #2a5d8c;
-  transform: translateY(1px);
+/* Responsive */
+@media (max-width: 600px) {
+  .trips-grid { grid-template-columns: 1fr; }
+  .trips-map-inline { height: 300px; }
 }

@@ -153,135 +153,120 @@ export default function TripDetail() {
   );
 
   return (
-    <>
-      {/* Map at Top - Elliptical Clipped */}
-     <div className="trip-map-floating-bottom">
-      <div className="trip-map-ellipse">
-        {coords && (
-          <MapContainer
-            center={[coords.lat, coords.lng]}
-            zoom={14}
-            className="leaflet-container"
-            scrollWheelZoom={true}
-            dragging={true}
-            doubleClickZoom={false}
-            zoomControl={true}
-            attributionControl={false}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={[coords.lat, coords.lng]}>
-              <Popup>{trip.destination}</Popup>
-            </Marker>
-          </MapContainer>
-        )}
-      </div>
-    </div>
+    <div className="trip-detail-page-container">
+      <div className="trip-detail-card">
+        <div className="trip-detail-content">
+          <Link to="/trips" className="back-link">
+            ← Back to All Trips
+          </Link>
 
-      {/* Trip Details Container */}
-      <div className="trip-detail-page-container">
-        <div className="trip-detail-card">
-          <div className="trip-detail-content">
-            <Link to="/trips" className="back-link">
-              ← Back to All Trips
-            </Link>
+          <TripCardImage query={trip.destination} altText={trip.destination} />
 
-            <TripCardImage
-              query={trip.destination}
-              altText={trip.destination}
-            />
+          <h1 className="trip-detail-title">{trip.destination}</h1>
+          <p>
+            <strong>Location:</strong> {trip.location}
+          </p>
+          <p>{trip.description}</p>
+          <p>
+            <strong>Date:</strong> {formattedDate}
+          </p>
+          <p>
+            <strong>Gender Preference:</strong>{" "}
+            {trip.genderPreference || "No preference"}
+          </p>
+          <p>
+            <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
+          </p>
+          <p>
+            <strong>Creator:</strong>{" "}
+            {trip.creator?.name || trip.creator || "Not available"}
+          </p>
+          <p>
+            <strong>Participants:</strong>{" "}
+            {trip.participants?.length > 0
+              ? trip.participants.map((p, idx) => (
+                  <span key={p._id || p}>
+                    <Link
+                      to={`/user/${p._id || p}`}
+                      className="participant-link"
+                    >
+                      {p.name || p}
+                    </Link>
+                    {idx < trip.participants.length - 1 && ", "}
+                  </span>
+                ))
+              : "No participants yet"}
+          </p>
 
-            <h1 className="trip-detail-title">{trip.destination}</h1>
-            <p>
-              <strong>Location:</strong> {trip.location}
-            </p>
-            <p>{trip.description}</p>
-            <p>
-              <strong>Date:</strong> {formattedDate}
-            </p>
-            <p>
-              <strong>Gender Preference:</strong>{" "}
-              {trip.genderPreference || "No preference"}
-            </p>
-            <p>
-              <strong>Blind Trip:</strong> {trip.blind ? "Yes" : "No"}
-            </p>
-            <p>
-              <strong>Creator:</strong>{" "}
-              {trip.creator?.name || trip.creator || "Not available"}
-            </p>
-            <p>
-              <strong>Participants:</strong>{" "}
-              {trip.participants?.length > 0
-                ? trip.participants.map((p, idx) => (
-                    <span key={p._id || p}>
-                      <Link
-                        to={`/user/${p._id || p}`}
-                        style={{
-                          color: "#4f46e5",
-                          textDecoration: "underline",
-                        }}
-                      >
-                        {p.name || p}
-                      </Link>
-                      {idx !== trip.participants.length - 1 && ", "}
-                    </span>
-                  ))
-                : "No participants yet"}
-            </p>
+          {userId && creatorId === userId && (
+            <div className="trip-actions">
+              <button
+                onClick={() => navigate(`/trip/edit/${trip._id}`)}
+                className="edit-button"
+              >
+                ✏️ Edit Trip
+              </button>
+              <button
+                onClick={() => handleDeleteTrip(trip._id)}
+                className="delete-button"
+              >
+                🗑️ Delete Trip
+              </button>
+            </div>
+          )}
 
-            {userId && creatorId === userId && (
-              <div className="trip-actions">
+          {userId && creatorId !== userId && (
+            <div className="join-button-container">
+              {!isParticipant ? (
                 <button
-                  onClick={() => navigate(`/trip/edit/${trip._id}`)}
-                  className="edit-button"
+                  className="join-button"
+                  onClick={() => handleJoinTrip(trip._id)}
                 >
-                  ✏️ Edit Trip
+                  ✅ Join Trip
                 </button>
+              ) : (
                 <button
-                  onClick={() => handleDeleteTrip(trip._id)}
-                  className="delete-button"
+                  className="leave-button"
+                  onClick={() => handleLeaveTrip(trip._id)}
                 >
-                  🗑️ Delete Trip
+                  ❌ Leave Trip
                 </button>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {userId && creatorId !== userId && (
-              <div className="join-button-container">
-                {!isParticipant ? (
-                  <button
-                    className="join-button"
-                    onClick={() => handleJoinTrip(trip._id)}
-                  >
-                    ✅ Join Trip
-                  </button>
-                ) : (
-                  <button
-                    className="leave-button"
-                    onClick={() => handleLeaveTrip(trip._id)}
-                  >
-                    ❌ Leave Trip
-                  </button>
-                )}
-              </div>
-            )}
-
-            {userId && (creatorId === userId || isParticipant) && (
-              <div className="chatbox-container">
-                <h2>Chat</h2>
-                <Chatbox
-                  tripId={trip._id}
-                  userId={userId}
-                  receiverId={creatorId}
+          {/* Map placed just above the chatbox container */}
+          {userId && (creatorId === userId || isParticipant) && coords && (
+            <div className="trip-map-inline">
+              <MapContainer
+                center={[coords.lat, coords.lng]}
+                zoom={5}
+                className="leaflet-container-inline"
+                scrollWheelZoom
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-              </div>
-            )}
-          </div>
+                <Marker position={[coords.lat, coords.lng]}>
+                  <Popup>{trip.destination}</Popup>
+                </Marker>
+              </MapContainer>
+            </div>
+          )}
+
+          {userId && (creatorId === userId || isParticipant) && (
+            <div className="chatbox-container">
+              <h2>Chat</h2>
+              <Chatbox
+                tripId={trip._id}
+                userId={userId}
+                receiverId={creatorId}
+              />
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,10 +1,22 @@
 import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Trips.css";
 import TripCardImage from "./TripCardImage";
 import video from "./Generated File June 13, 2025 - 10_53PM.mp4";
 import { AuthContext } from "../context/AuthContext.jsx";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix Leaflet default icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 const VideoBackground = () => (
   <div className="video-background">
@@ -25,159 +37,152 @@ const TABS = [
 ];
 
 export default function Trips() {
+  const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
+  const [coordsList, setCoordsList] = useState([]);
   const { isAuthenticated, getUserId, token } = useContext(AuthContext);
-
-  const [form, setForm] = useState({
-    destination: "",
-    description: "",
-    location: "",
-    date: "",
-    college: "",
-    genderPreference: "",
-    blind: false,
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const tripsGridRef = useRef(null);
+  const [joiningTripId, setJoiningTripId] = useState(null);
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [searchLocation, setSearchLocation] = useState("");
   const [searchCollege, setSearchCollege] = useState("");
-  const [joiningTripId, setJoiningTripId] = useState(null);
 
-  const id = useMemo(() => {
-    return isAuthenticated && typeof getUserId === "function" ? getUserId() : null;
-  }, [isAuthenticated, getUserId]);
+  const userId = useMemo(
+    () =>
+      isAuthenticated && typeof getUserId === "function" ? getUserId() : null,
+    [isAuthenticated, getUserId]
+  );
 
+  // Fetch trips based on tab
   useEffect(() => {
     if (activeTab === "create") return;
-
     setLoading(true);
     setError(null);
-
     let apiUrl = "http://localhost:5000/trip";
-
     if (activeTab === "location" && searchLocation.trim()) {
       apiUrl += `?location=${encodeURIComponent(searchLocation)}`;
     } else if (activeTab === "college" && searchCollege.trim()) {
       apiUrl += `/college?college=${encodeURIComponent(searchCollege)}`;
-    } else if (
-      activeTab !== "/" &&
-      !["location", "college"].includes(activeTab)
-    ) {
+    } else if (!["/", "location", "college"].includes(activeTab)) {
       apiUrl += `/${activeTab}`;
     }
-
     axios
       .get(apiUrl)
       .then((res) => setTrips(res.data))
       .catch(() => {
-        const label =
-          TABS.find((t) => t.id === activeTab)?.label || "this category";
-        setError(`Failed to load trips for ${label}.`);
+        setError("Failed to load trips.");
         setTrips([]);
       })
       .finally(() => setLoading(false));
   }, [activeTab, searchLocation, searchCollege]);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const token = localStorage.getItem("token");
-
-    const trip_form = {
-      ...form,
-      creator: id,
+  // Geocode all trips when list updates
+  useEffect(() => {
+    const fetchCoords = async () => {
+      const results = await Promise.all(
+        trips.map(async (trip) => {
+          try {
+            const resp = await axios.get(
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+                trip.destination
+              )}&format=json&limit=1`
+            );
+            if (resp.data.length) {
+              const { lat, lon } = resp.data[0];
+              return {
+                id: trip._id,
+                lat: parseFloat(lat),
+                lng: parseFloat(lon),
+                name: trip.destination,
+              };
+            }
+          } catch {
+            return null;
+          }
+          return null;
+        })
+      );
+      setCoordsList(results.filter((r) => r));
     };
-
-    axios
-      .post("http://localhost:5000/trip/create", trip_form, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        const newTrip = res.data?.trip;
-        if (!newTrip || !newTrip._id) {
-          throw new Error("Invalid trip response from server");
-        }
-
-        setTrips((prev) => [newTrip, ...prev]);
-        setForm({
-          destination: "",
-          description: "",
-          location: "",
-          date: "",
-          college: "",
-          genderPreference: "",
-          blind: false,
-        });
-        handleJoinTrip(newTrip._id);
-        setActiveTab("/");
-      })
-      .catch((err) => {
-        console.error(err.response?.data || err.message);
-        alert("Could not add trip. Make sure you're logged in.");
-      });
-  };
-
-  const handleLocationSearch = (e) => {
-    e.preventDefault();
-    setSearchLocation(form.location);
-  };
-
-  const handleCollegeSearch = (e) => {
-    e.preventDefault();
-    setSearchCollege(form.college);
-  };
+    if (trips.length) fetchCoords();
+  }, [trips]);
 
   const handleJoinTrip = async (tripId) => {
     if (!isAuthenticated || !token) {
       alert("You must be logged in to join a trip.");
       return;
     }
-
     setJoiningTripId(tripId);
     try {
       await axios.post(
         `http://localhost:5000/trip/join/${tripId}`,
-        { id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       alert("Successfully joined the trip!");
-
-      setTrips((prevTrips) =>
-        prevTrips.map((trip) =>
-          trip._id === tripId
-            ? {
-                ...trip,
-                participants: [...(trip.participants || []), id],
-              }
-            : trip
+      setTrips((prev) =>
+        prev.map((t) =>
+          t._id === tripId
+            ? { ...t, participants: [...(t.participants || []), userId] }
+            : t
         )
       );
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to join the trip.";
-      alert(errorMessage);
-      console.error(errorMessage);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to join the trip.");
     } finally {
       setJoiningTripId(null);
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!token) {
+      alert("Login required.");
+      return;
+    }
+    const form = e.target;
+    const data = {
+      destination: form.destination.value,
+      location: form.location.value,
+      description: form.description.value,
+      date: form.date.value,
+      college: form.college.value,
+      genderPreference: form.genderPreference.value,
+      blind: form.blind.checked,
+      creator: userId,
+    };
+    axios
+      .post("http://localhost:5000/trip/create", data, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setTrips((prev) => [res.data.trip, ...prev]);
+        setActiveTab("/");
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Could not create trip.");
+      });
+  };
+
+  const handleLocationSearch = (e) => {
+    e.preventDefault();
+    setSearchLocation(e.target.location.value);
+  };
+
+  const handleCollegeSearch = (e) => {
+    e.preventDefault();
+    setSearchCollege(e.target.college.value);
+  };
 
   return (
     <>
       <VideoBackground />
       <div className="main_container">
         <div className="trips-page-container">
+          {/* Tabs */}
           <div className="tabs-container">
             {TABS.map((tab) => (
               <button
@@ -194,51 +199,15 @@ export default function Trips() {
             ))}
           </div>
 
+          {/* Create Form */}
           {activeTab === "create" && (
-            <form onSubmit={handleSubmit} className="add-trip-form">
-              <input
-                name="destination"
-                value={form.destination}
-                placeholder="Venue Name"
-                onChange={handleChange}
-                required
-              />
-              <input
-                name="location"
-                value={form.location}
-                placeholder="Location"
-                onChange={handleChange}
-                required
-              />
-              <input
-                name="description"
-                value={form.description}
-                placeholder="Description"
-                onChange={handleChange}
-                required
-              />
-              <input
-                name="college"
-                value={form.college}
-                placeholder="College Name"
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-                placeholder="Date"
-                required
-              />
-              <select
-                name="genderPreference"
-                value={form.genderPreference}
-                onChange={(e) =>
-                  setForm({ ...form, genderPreference: e.target.value })
-                }
-              >
+            <form className="add-trip-form" onSubmit={handleSubmit}>
+              <input name="destination" placeholder="Venue Name" required />
+              <input name="location" placeholder="Location" required />
+              <input name="description" placeholder="Description" required />
+              <input name="college" placeholder="College Name" required />
+              <input type="date" name="date" required />
+              <select name="genderPreference">
                 <option value="">Select Gender Preference</option>
                 <option value="Any">Any</option>
                 <option value="Male">Male</option>
@@ -246,50 +215,31 @@ export default function Trips() {
               </select>
               <label>
                 Blind Trip:
-                <input
-                  type="checkbox"
-                  checked={form.blind}
-                  onChange={(e) =>
-                    setForm({ ...form, blind: e.target.checked })
-                  }
-                />
+                <input type="checkbox" name="blind" />
               </label>
               <button type="submit">Create Trip</button>
             </form>
           )}
 
+          {/* Search Forms */}
           {activeTab === "location" && (
-            <form onSubmit={handleLocationSearch} className="search-container">
-              <input
-                type="text"
-                name="location"
-                value={form.location}
-                onChange={handleChange}
-                placeholder="Enter location"
-                required
-              />
+            <form className="search-container" onSubmit={handleLocationSearch}>
+              <input name="location" placeholder="Enter location" required />
               <button type="submit" className="search-btn">
                 Search
               </button>
             </form>
           )}
-
           {activeTab === "college" && (
-            <form onSubmit={handleCollegeSearch} className="search-container">
-              <input
-                type="text"
-                name="college"
-                value={form.college}
-                onChange={handleChange}
-                placeholder="Enter college"
-                required
-              />
+            <form className="search-container" onSubmit={handleCollegeSearch}>
+              <input name="college" placeholder="Enter college" required />
               <button type="submit" className="search-btn">
                 Search
               </button>
             </form>
           )}
 
+          {/* Grid */}
           {activeTab !== "create" && (
             <div className="trips-scroll-container">
               {loading ? (
@@ -299,7 +249,7 @@ export default function Trips() {
               ) : trips.length === 0 ? (
                 <p className="no-trips-message">No trips found.</p>
               ) : (
-                <ul ref={tripsGridRef} className="trips-grid">
+                <ul className="trips-grid">
                   {trips.map((trip) => (
                     <li key={trip._id} className="trip-card">
                       <Link
@@ -313,18 +263,12 @@ export default function Trips() {
                           />
                         </div>
                         <div className="card-content">
-                          <div className="card-header">
-                            <h3 className="card-title">{trip.destination}</h3>
-                          </div>
+                          <h3 className="card-title">{trip.destination}</h3>
                           <p className="card-location">{trip.location}</p>
                           <p className="card-description">
                             {trip.description.split(" ").slice(0, 20).join(" ")}
                             {trip.description.split(" ").length > 10 && "..."}
                           </p>
-                          <div className="card-icons">
-                            <i className="fa-solid fa-table-tennis-paddle-ball" />
-                            <i className="fa-solid fa-person-swimming" />
-                          </div>
                         </div>
                       </Link>
                       <button
@@ -338,6 +282,31 @@ export default function Trips() {
                   ))}
                 </ul>
               )}
+            </div>
+          )}
+
+          {/* Map with pins */}
+          {!loading && coordsList.length > 0 && (
+            <div className="trips-map-inline">
+              <MapContainer
+                bounds={coordsList.map((c) => [c.lat, c.lng])}
+                style={{ width: "100%", height: "400px" }}
+                scrollWheelZoom
+              >
+                <TileLayer
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  attribution="Tiles &copy; Esri"
+                />
+                {coordsList.map((c) => (
+                  <Marker
+                    key={c.id}
+                    position={[c.lat, c.lng]}
+                    eventHandlers={{ click: () => navigate(`/trip/${c.id}`) }}
+                  >
+                    <Popup>{c.name}</Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
             </div>
           )}
         </div>
