@@ -13,20 +13,9 @@ import L from "leaflet";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
-
-const VideoBackground = () => (
-  <div className="video-background">
-    <video autoPlay loop muted playsInline>
-      <source src={video} type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
-    <div className="video-overlay"></div>
-  </div>
-);
 
 const TABS = [
   { id: "/", label: "All Trips" },
@@ -49,12 +38,10 @@ export default function Trips() {
   const [searchCollege, setSearchCollege] = useState("");
 
   const userId = useMemo(
-    () =>
-      isAuthenticated && typeof getUserId === "function" ? getUserId() : null,
+    () => (isAuthenticated && typeof getUserId === "function" ? getUserId() : null),
     [isAuthenticated, getUserId]
   );
 
-  // Fetch trips based on tab
   useEffect(() => {
     if (activeTab === "create") return;
     setLoading(true);
@@ -77,8 +64,11 @@ export default function Trips() {
       .finally(() => setLoading(false));
   }, [activeTab, searchLocation, searchCollege]);
 
-  // Geocode all trips when list updates
   useEffect(() => {
+    if (!trips.length) {
+      setCoordsList([]);
+      return;
+    }
     const fetchCoords = async () => {
       const results = await Promise.all(
         trips.map(async (trip) => {
@@ -105,7 +95,7 @@ export default function Trips() {
       );
       setCoordsList(results.filter((r) => r));
     };
-    if (trips.length) fetchCoords();
+    fetchCoords();
   }, [trips]);
 
   const handleJoinTrip = async (tripId) => {
@@ -178,139 +168,125 @@ export default function Trips() {
   };
 
   return (
-    <>
-      <VideoBackground />
-      <div className="main_container">
-        <div className="trips-page-container">
-          {/* Tabs */}
-          <div className="tabs-container">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  if (tab.id !== "location") setSearchLocation("");
-                  if (tab.id !== "college") setSearchCollege("");
-                }}
-              >
-                {tab.label} {activeTab === tab.id ? `(${trips.length})` : null}
-              </button>
-            ))}
-          </div>
-
-          {/* Create Form */}
-          {activeTab === "create" && (
-            <form className="add-trip-form" onSubmit={handleSubmit}>
-              <input name="destination" placeholder="Venue Name" required />
-              <input name="location" placeholder="Location" required />
-              <input name="description" placeholder="Description" required />
-              <input name="college" placeholder="College Name" required />
-              <input type="date" name="date" required />
-              <select name="genderPreference">
-                <option value="">Select Gender Preference</option>
-                <option value="Any">Any</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-              <label>
-                Blind Trip:
-                <input type="checkbox" name="blind" />
-              </label>
-              <button type="submit">Create Trip</button>
-            </form>
-          )}
-
-          {/* Search Forms */}
-          {activeTab === "location" && (
-            <form className="search-container" onSubmit={handleLocationSearch}>
-              <input name="location" placeholder="Enter location" required />
-              <button type="submit" className="search-btn">
-                Search
-              </button>
-            </form>
-          )}
-          {activeTab === "college" && (
-            <form className="search-container" onSubmit={handleCollegeSearch}>
-              <input name="college" placeholder="Enter college" required />
-              <button type="submit" className="search-btn">
-                Search
-              </button>
-            </form>
-          )}
-
-          {/* Grid */}
-          {activeTab !== "create" && (
-            <div className="trips-scroll-container">
-              {loading ? (
-                <div className="loading-container">Loading...</div>
-              ) : error ? (
-                <div className="error-container">{error}</div>
-              ) : trips.length === 0 ? (
-                <p className="no-trips-message">No trips found.</p>
-              ) : (
-                <ul className="trips-grid">
-                  {trips.map((trip) => (
-                    <li key={trip._id} className="trip-card">
-                      <Link
-                        to={`/trip/${trip._id}`}
-                        className="card-link-wrapper"
-                      >
-                        <div className="card-image-container">
-                          <TripCardImage
-                            query={trip.destination}
-                            altText={trip.destination}
-                          />
-                        </div>
-                        <div className="card-content">
-                          <h3 className="card-title">{trip.destination}</h3>
-                          <p className="card-location">{trip.location}</p>
-                          <p className="card-description">
-                            {trip.description.split(" ").slice(0, 20).join(" ")}
-                            {trip.description.split(" ").length > 10 && "..."}
-                          </p>
-                        </div>
-                      </Link>
-                      <button
-                        className="join-trip-btn"
-                        disabled={joiningTripId === trip._id}
-                        onClick={() => handleJoinTrip(trip._id)}
-                      >
-                        {joiningTripId === trip._id ? "Joining..." : "Join"}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          {/* Map with pins */}
-          {!loading && coordsList.length > 0 && (
-            <div className="trips-map-inline">
-              <MapContainer
-                bounds={coordsList.map((c) => [c.lat, c.lng])}
-                style={{ width: "100%", height: "400px" }}
-                scrollWheelZoom
-              >
-                <TileLayer
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                  attribution="Tiles &copy; Esri"
-                />
-                {coordsList.map((c) => (
-                  <Marker
-                    key={c.id}
-                    position={[c.lat, c.lng]}
-                    eventHandlers={{ click: () => navigate(`/trip/${c.id}`) }}
-                  >
-                    <Popup>{c.name}</Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
-            </div>
-          )}
+    <div className="main_container">
+      <div className="trips-page-container">
+        <div className="tabs-container">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (tab.id !== "location") setSearchLocation("");
+                if (tab.id !== "college") setSearchCollege("");
+              }}
+            >
+              {tab.label} {activeTab === tab.id ? `(${trips.length})` : null}
+            </button>
+          ))}
         </div>
+
+        {activeTab === "create" && (
+          <form className="add-trip-form" onSubmit={handleSubmit}>
+            <input name="destination" placeholder="Venue Name" required />
+            <input name="location" placeholder="Location" required />
+            <input name="description" placeholder="Description" required />
+            <input name="college" placeholder="College Name" required />
+            <input type="date" name="date" required />
+            <select name="genderPreference">
+              <option value="">Select Gender Preference</option>
+              <option value="Any">Any</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+            <label>
+              Blind Trip:
+              <input type="checkbox" name="blind" />
+            </label>
+            <button type="submit">Create Trip</button>
+          </form>
+        )}
+
+        {activeTab === "location" && (
+          <form className="search-container" onSubmit={handleLocationSearch}>
+            <input name="location" placeholder="Enter location" required />
+            <button type="submit" className="search-btn">
+              Search
+            </button>
+          </form>
+        )}
+        {activeTab === "college" && (
+          <form className="search-container" onSubmit={handleCollegeSearch}>
+            <input name="college" placeholder="Enter college" required />
+            <button type="submit" className="search-btn">
+              Search
+            </button>
+          </form>
+        )}
+
+        {activeTab !== "create" && (
+          <div className="trips-scroll-container">
+            {loading ? (
+              <div className="loading-container">Loading...</div>
+            ) : error ? (
+              <div className="error-container">{error}</div>
+            ) : trips.length === 0 ? (
+              <p className="no-trips-message">No trips found.</p>
+            ) : (
+              <ul className="trips-grid">
+                {trips.map((trip) => (
+                  <li key={trip._id} className="trip-card">
+                    <Link to={`/trip/${trip._id}`} className="card-link-wrapper">
+                      <div className="card-image-container">
+                        <TripCardImage query={trip.destination} altText={trip.destination} />
+                      </div>
+                      <div className="card-content">
+                        <h3 className="card-title">{trip.destination}</h3>
+                        <p className="card-location">{trip.location}</p>
+                        <p className="card-description">
+                          {trip.description.split(" ").slice(0, 20).join(" ")}
+                          {trip.description.split(" ").length > 10 && "..."}
+                        </p>
+                      </div>
+                    </Link>
+                    <button
+                      className="join-trip-btn"
+                      disabled={joiningTripId === trip._id}
+                      onClick={() => handleJoinTrip(trip._id)}
+                    >
+                      {joiningTripId === trip._id ? "Joining..." : "Join"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {!loading && coordsList.length > 0 && (
+          <div className="trips-map-inline">
+            <MapContainer
+              bounds={coordsList.map((c) => [c.lat, c.lng])}
+              style={{ width: "100%", height: "400px" }}
+              scrollWheelZoom
+            >
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution="Tiles &copy; Esri"
+              />
+              {coordsList.map((c) => (
+                <Marker
+                  key={c.id}
+                  position={[c.lat, c.lng]}
+                  eventHandlers={{ click: () => navigate(`/trip/${c.id}`) }}
+                >
+                  <Popup>{c.name}</Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
