@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Trips.css";
@@ -21,6 +21,7 @@ const TABS = [
   { id: "/", label: "All Trips" },
   { id: "college", label: "College Trips" },
   { id: "location", label: "By Location" },
+  { id: "match", label: "Find Matches" },
   { id: "blind", label: "Blind Trips" },
   { id: "create", label: "Create Trip" },
 ];
@@ -29,40 +30,45 @@ export default function Trips() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [coordsList, setCoordsList] = useState([]);
-  const { isAuthenticated, getUserId, token } = useContext(AuthContext);
+  const { isAuthenticated, token } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joiningTripId, setJoiningTripId] = useState(null);
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [searchLocation, setSearchLocation] = useState("");
   const [searchCollege, setSearchCollege] = useState("");
+  const [matchQuery, setMatchQuery] = useState(null);
 
-  const userId = useMemo(
-    () => (isAuthenticated && typeof getUserId === "function" ? getUserId() : null),
-    [isAuthenticated, getUserId]
-  );
 
   useEffect(() => {
     if (activeTab === "create") return;
+    if (activeTab === "match" && !matchQuery) {
+      setTrips([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     let apiUrl = "http://localhost:5000/trip";
-    if (activeTab === "location" && searchLocation.trim()) {
+    if (activeTab === "match") {
+      apiUrl += `/match?${new URLSearchParams(matchQuery).toString()}`;
+    } else if (activeTab === "location" && searchLocation.trim()) {
       apiUrl += `?location=${encodeURIComponent(searchLocation)}`;
     } else if (activeTab === "college" && searchCollege.trim()) {
       apiUrl += `/college?college=${encodeURIComponent(searchCollege)}`;
     } else if (!["/", "location", "college"].includes(activeTab)) {
       apiUrl += `/${activeTab}`;
     }
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
     axios
-      .get(apiUrl)
+      .get(apiUrl, { headers })
       .then((res) => setTrips(res.data))
-      .catch(() => {
-        setError("Failed to load trips.");
+      .catch((err) => {
+        setError(err.response?.data?.message || "Failed to load trips.");
         setTrips([]);
       })
       .finally(() => setLoading(false));
-  }, [activeTab, searchLocation, searchCollege]);
+  }, [activeTab, searchLocation, searchCollege, matchQuery, token]);
 
   useEffect(() => {
     if (!trips.length) {
@@ -114,13 +120,13 @@ export default function Trips() {
       setTrips((prev) =>
         prev.map((t) =>
           t._id === tripId
-            ? { ...t, participants: [...(t.participants || []), userId] }
+            ? { ...t, isParticipant: true, participantCount: (t.participantCount || 0) + 1 }
             : t
         )
       );
     } catch (err) {
       console.error(err);
-      alert("Failed to join the trip.");
+      alert(err.response?.data?.message || "Failed to join the trip.");
     } finally {
       setJoiningTripId(null);
     }
@@ -138,10 +144,10 @@ export default function Trips() {
       location: form.location.value,
       description: form.description.value,
       date: form.date.value,
+      endDate: form.endDate.value || undefined,
       college: form.college.value,
       genderPreference: form.genderPreference.value,
       blind: form.blind.checked,
-      creator: userId,
     };
     axios
       .post("http://localhost:5000/trip/create", data, {
@@ -153,8 +159,37 @@ export default function Trips() {
       })
       .catch((err) => {
         console.error(err);
-        alert("Could not create trip.");
+        alert(err.response?.data?.message || "Could not create trip.");
       });
+  };
+
+  const handleMatchSearch = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const query = {
+      start: form.start.value,
+      end: form.end.value,
+    };
+    if (form.location.value.trim()) {
+      query.location = form.location.value.trim();
+    }
+    if (form.goal.value.trim()) {
+      query.goal = form.goal.value.trim();
+    }
+    setMatchQuery(query);
+  };
+
+  const formatShortDate = (value) =>
+    new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+  const tripDates = (trip) => {
+    if (!trip.date) {
+      return "";
+    }
+    if (trip.endDate && trip.endDate !== trip.date) {
+      return formatShortDate(trip.date) + " - " + formatShortDate(trip.endDate);
+    }
+    return formatShortDate(trip.date);
   };
 
   const handleLocationSearch = (e) => {
@@ -179,6 +214,7 @@ export default function Trips() {
                 setActiveTab(tab.id);
                 if (tab.id !== "location") setSearchLocation("");
                 if (tab.id !== "college") setSearchCollege("");
+                if (tab.id !== "match") setMatchQuery(null);
               }}
             >
               {tab.label} {activeTab === tab.id ? `(${trips.length})` : null}
@@ -192,7 +228,14 @@ export default function Trips() {
             <input name="location" placeholder="Location" required />
             <input name="description" placeholder="Description" required />
             <input name="college" placeholder="College Name" required />
-            <input type="date" name="date" required />
+            <label>
+              Start date:
+              <input type="date" name="date" required />
+            </label>
+            <label>
+              End date (optional):
+              <input type="date" name="endDate" />
+            </label>
             <select name="genderPreference">
               <option value="">Select Gender Preference</option>
               <option value="Any">Any</option>
@@ -215,6 +258,23 @@ export default function Trips() {
             </button>
           </form>
         )}
+        {activeTab === "match" && (
+          <form className="search-container match-form" onSubmit={handleMatchSearch}>
+            <input name="location" placeholder="Where do you want to go? (optional)" />
+            <label>
+              From:
+              <input type="date" name="start" required />
+            </label>
+            <label>
+              To:
+              <input type="date" name="end" required />
+            </label>
+            <input name="goal" placeholder="Trip goal, e.g. trek (optional)" />
+            <button type="submit" className="search-btn">
+              Find Matches
+            </button>
+          </form>
+        )}
         {activeTab === "college" && (
           <form className="search-container" onSubmit={handleCollegeSearch}>
             <input name="college" placeholder="Enter college" required />
@@ -230,6 +290,10 @@ export default function Trips() {
               <div className="loading-container">Loading...</div>
             ) : error ? (
               <div className="error-container">{error}</div>
+            ) : activeTab === "match" && !matchQuery ? (
+              <p className="no-trips-message">
+                Enter your dates (and a place or goal if you like) to find trips that overlap with your plans.
+              </p>
             ) : trips.length === 0 ? (
               <p className="no-trips-message">No trips found.</p>
             ) : (
@@ -243,19 +307,35 @@ export default function Trips() {
                       <div className="card-content">
                         <h3 className="card-title">{trip.destination}</h3>
                         <p className="card-location">{trip.location}</p>
+                        <p className="card-dates">{tripDates(trip)}</p>
+                        {trip.overlapDays !== undefined && (
+                          <p className="overlap-badge">
+                            {trip.overlapDays} day{trip.overlapDays === 1 ? "" : "s"} overlap with your dates
+                          </p>
+                        )}
                         <p className="card-description">
-                          {trip.description.split(" ").slice(0, 20).join(" ")}
-                          {trip.description.split(" ").length > 10 && "..."}
+                          {(trip.description || "").split(" ").slice(0, 20).join(" ")}
+                          {(trip.description || "").split(" ").length > 20 && "..."}
                         </p>
                       </div>
                     </Link>
-                    <button
-                      className="join-trip-btn"
-                      disabled={joiningTripId === trip._id}
-                      onClick={() => handleJoinTrip(trip._id)}
-                    >
-                      {joiningTripId === trip._id ? "Joining..." : "Join"}
-                    </button>
+                    {trip.isCreator ? (
+                      <button className="join-trip-btn" disabled>
+                        Your trip
+                      </button>
+                    ) : trip.isParticipant ? (
+                      <button className="join-trip-btn" disabled>
+                        Joined
+                      </button>
+                    ) : (
+                      <button
+                        className="join-trip-btn"
+                        disabled={joiningTripId === trip._id}
+                        onClick={() => handleJoinTrip(trip._id)}
+                      >
+                        {joiningTripId === trip._id ? "Joining..." : "Join"}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

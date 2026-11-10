@@ -262,3 +262,32 @@ input:-webkit-autofill {
   .trips-grid { grid-template-columns: 1fr; }
   .trips-map-inline { height: 300px; }
 }
+
+
+.card-dates {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 2px 0;
+}
+
+.overlap-badge {
+  display: inline-block;
+  background: #e0f2f1;
+  color: #00695c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin: 4px 0;
+}
+
+.match-form {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.match-form label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

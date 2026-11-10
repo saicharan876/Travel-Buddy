@@ -25,12 +25,13 @@ export default function TripDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [coords, setCoords] = useState(null);
-  const { isAuthenticated, getUserId } = useContext(AuthContext);
+  const { isAuthenticated, getUserId, token } = useContext(AuthContext);
   const userId = isAuthenticated && getUserId ? getUserId() : null;
 
-  useEffect(() => {
-    axios
-      .get(`http://localhost:5000/trip/${id}`)
+  const loadTrip = () => {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    return axios
+      .get(`http://localhost:5000/trip/${id}`, { headers })
       .then((res) => {
         setTrip(res.data);
         setError(null);
@@ -39,7 +40,12 @@ export default function TripDetail() {
         setError("Failed to load trip details");
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  };
+
+  useEffect(() => {
+    loadTrip();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, token]);
 
   useEffect(() => {
     if (trip?.destination) {
@@ -96,10 +102,7 @@ export default function TripDetail() {
       );
 
       alert("Successfully joined the trip!");
-      setTrip((prev) => ({
-        ...prev,
-        participants: [...(prev.participants || []), userId],
-      }));
+      loadTrip();
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -139,18 +142,24 @@ export default function TripDetail() {
       </>
     );
 
-  const formattedDate = trip.date
-    ? new Date(trip.date).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "Date not specified";
+  const formatDate = (value) =>
+    new Date(value).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
-  const creatorId = trip.creator?._id || trip.creator;
-  const isParticipant = trip.participants?.some(
-    (p) => (typeof p === "object" ? p._id : p) === userId
-  );
+  let formattedDate = "Date not specified";
+  if (trip.date) {
+    formattedDate = formatDate(trip.date);
+    if (trip.endDate && trip.endDate !== trip.date) {
+      formattedDate = formatDate(trip.date) + " to " + formatDate(trip.endDate);
+    }
+  }
+
+  const isCreator = trip.isCreator === true;
+  const isParticipant = trip.isParticipant === true;
+  const isMember = isCreator || isParticipant;
 
   return (
     <div className="trip-detail-page-container">
@@ -179,11 +188,15 @@ export default function TripDetail() {
           </p>
           <p>
             <strong>Creator:</strong>{" "}
-            {trip.creator?.name || trip.creator || "Not available"}
+            {trip.identitiesHidden
+              ? "Hidden until the trip starts"
+              : trip.creator?.name || "Not available"}
           </p>
           <p>
             <strong>Participants:</strong>{" "}
-            {trip.participants?.length > 0
+            {trip.identitiesHidden
+              ? `${trip.participantCount} traveler(s) joined. Names are revealed when the trip starts.`
+              : trip.participants?.length > 0
               ? trip.participants.map((p, idx) => (
                   <span key={p._id || p}>
                     <Link
@@ -198,7 +211,7 @@ export default function TripDetail() {
               : "No participants yet"}
           </p>
 
-          {userId && creatorId === userId && (
+          {userId && isCreator && (
             <div className="trip-actions">
               <button
                 onClick={() => navigate(`/trip/edit/${trip._id}`)}
@@ -215,7 +228,7 @@ export default function TripDetail() {
             </div>
           )}
 
-          {userId && creatorId !== userId && (
+          {userId && !isCreator && (
             <div className="join-button-container">
               {!isParticipant ? (
                 <button
@@ -236,7 +249,7 @@ export default function TripDetail() {
           )}
 
           {/* Map placed just above the chatbox container */}
-          {userId && (creatorId === userId || isParticipant) && coords && (
+          {userId && isMember && coords && (
             <div className="trip-map-inline">
               <MapContainer
                 center={[coords.lat, coords.lng]}
@@ -255,14 +268,10 @@ export default function TripDetail() {
             </div>
           )}
 
-          {userId && (creatorId === userId || isParticipant) && (
+          {userId && isMember && (
             <div className="chatbox-container">
               <h2>Chat</h2>
-              <Chatbox
-                tripId={trip._id}
-                userId={userId}
-                receiverId={creatorId}
-              />
+              <Chatbox tripId={trip._id} userId={userId} />
             </div>
           )}
         </div>

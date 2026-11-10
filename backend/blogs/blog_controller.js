@@ -4,7 +4,8 @@ const User = require('../user/user_model.js');
 
 async function createBlog(req, res) {
   try {
-    const { title, destination, content, author, image, author_Id } = req.body;
+    const { title, destination, content, author, image } = req.body;
+    const author_Id = req.user.id;
 
     
     const user = await User.findById(author_Id);

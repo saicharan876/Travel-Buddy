@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     },
     College: String,
     Job: String,
+    dob: Date,
   },
   { timestamps: true }
 );

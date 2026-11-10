@@ -47,7 +47,7 @@ export default function Signup() {
       alert('Signup successful! Please log in.');
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      setError(err.response?.data?.msg || err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }

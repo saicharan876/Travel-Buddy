@@ -6,6 +6,7 @@ const TripModelSchema = new mongoose.Schema({
   location: { type: String },
   college: { type: String },
   date: { type: Date, required: true },
+  endDate: { type: Date },
   genderPreference: { type: String, enum: ["Male", "Female", "Any"] },
   blind: { type: Boolean, default: false },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

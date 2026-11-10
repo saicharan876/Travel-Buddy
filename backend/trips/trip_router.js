@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Auth } = require("../middleware/auth_middleware");
+const { Auth, OptionalAuth } = require("../middleware/auth_middleware");
 const {
   createTrip,
   getTripById,
@@ -8,40 +8,24 @@ const {
   TripCollegePage,
   TripLocationPage,
   BlindTrips,
+  MatchTrips,
   AddParticipate,
   DeleteTrip,
   LeaveTrip,
   editTrip,
 } = require("./trip_controller");
 
-// Create a new trip
-router.post("/create",Auth,createTrip);
+router.post("/create", Auth, createTrip);
+router.post("/join/:id", Auth, AddParticipate);
+router.post("/leave/:id", Auth, LeaveTrip);
+router.delete("/delete/:id", Auth, DeleteTrip);
+router.put("/edit/:id", Auth, editTrip);
 
-//Add Participate
-router.post("/join/:id",Auth,AddParticipate);
-
-//Leave Trip
-router.post("/leave/:id",Auth,LeaveTrip);
-
-//Delete Trip
-router.delete("/delete/:id",Auth,DeleteTrip);
-
-//Edit Trip
-router.put("/edit/:id",Auth,editTrip);
-
-// Get all trips or by ?location=
-router.get("/", TripMainPage);
-
-// Get trips by college
-router.get("/college",TripCollegePage);
-
-// Get trips by location
-router.get("/location", TripLocationPage);
-
-// Get blind trips
-router.get("/blind", BlindTrips);
-
-// Get single trip
-router.get("/:id", getTripById);
+router.get("/", OptionalAuth, TripMainPage);
+router.get("/college", OptionalAuth, TripCollegePage);
+router.get("/location", OptionalAuth, TripLocationPage);
+router.get("/blind", OptionalAuth, BlindTrips);
+router.get("/match", OptionalAuth, MatchTrips);
+router.get("/:id", OptionalAuth, getTripById);
 
 module.exports = router;

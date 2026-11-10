@@ -1,21 +1,37 @@
 const jwt = require("jsonwebtoken");
-const SECRET = "!@#$%^&*()";
+const { JWT_SECRET } = require("../config.js");
 
-// function Auth(req,res,next) {
-//   next();
-// }
+function readToken(req) {
+  const header = req.header("Authorization");
+  if (!header || !header.startsWith("Bearer ")) {
+    return null;
+  }
+  return header.split(" ")[1];
+}
 
 function Auth(req, res, next) {
-  const token = req.header("Authorization");
-  if (!token) return res.status(401).json({ msg: "No token. Auth denied." });
-
+  const token = readToken(req);
+  if (!token) {
+    return res.status(401).json({ msg: "No token. Auth denied." });
+  }
   try {
-    const decoded = jwt.verify(token.split(" ")[1], SECRET);
-    req.user = decoded;
+    req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch {
-    res.status(401).json({ msg: "Token invalid" });
+    res.status(401).json({ msg: "Token invalid or expired" });
   }
-};
+}
 
-module.exports = {Auth};
+function OptionalAuth(req, res, next) {
+  const token = readToken(req);
+  if (token) {
+    try {
+      req.user = jwt.verify(token, JWT_SECRET);
+    } catch {
+      req.user = undefined;
+    }
+  }
+  next();
+}
+
+module.exports = { Auth, OptionalAuth };

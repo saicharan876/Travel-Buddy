@@ -15,6 +15,7 @@ export default function EditTrip() {
     description: "",
     college: "",
     date: "",
+    endDate: "",
     genderPreference: "",
     blind: false,
   });
@@ -32,6 +33,7 @@ export default function EditTrip() {
           description: trip.description || "",
           college: trip.college || "",
           date: trip.date ? new Date(trip.date).toISOString().split("T")[0] : "",
+          endDate: trip.endDate ? new Date(trip.endDate).toISOString().split("T")[0] : "",
           genderPreference: trip.genderPreference || "",
           blind: trip.blind || false,
         });
@@ -63,7 +65,7 @@ export default function EditTrip() {
       })
       .catch((err) => {
         console.error(err.response?.data || err.message);
-        alert("Failed to update trip.");
+        alert(err.response?.data?.message || "Failed to update trip.");
       });
   };
 
@@ -97,14 +99,26 @@ export default function EditTrip() {
         onChange={handleChange}
         required
       />
-      <input
-        type="date"
-        name="date"
-        value={form.date}
-        onChange={handleChange}
-        placeholder="Date"
-        required
-      />
+      <label>
+        Start date:
+        <input
+          type="date"
+          name="date"
+          value={form.date}
+          onChange={handleChange}
+          placeholder="Date"
+          required
+        />
+      </label>
+      <label>
+        End date:
+        <input
+          type="date"
+          name="endDate"
+          value={form.endDate}
+          onChange={handleChange}
+        />
+      </label>
       <select
         name="genderPreference"
         value={form.genderPreference}

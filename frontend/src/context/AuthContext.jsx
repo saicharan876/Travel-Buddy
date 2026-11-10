@@ -1,53 +1,75 @@
 import React, { createContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
-// Create the context
 export const AuthContext = createContext(null);
 
-// Create the provider component
-export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [user, setUser] = useState(null);
-
-  const isAuthenticated = !!token;
-  // Effect to run on initial load and when token changes
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      try {
-        const decodedUser = jwtDecode(storedToken); // Decode token to get user info
-        setUser(decodedUser);
-        setToken(storedToken);
-      } catch (error) {
-        console.error("Invalid token:", error);
-        logout(); // Clear invalid token
-      }
+function isTokenValid(token) {
+  if (!token) {
+    return false;
+  }
+  try {
+    const decoded = jwtDecode(token);
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      return false;
     }
-  }, []);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
 
-  const login = (newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-    try {
-      const decodedUser = jwtDecode(newToken);
-      setUser(decodedUser);
-    } catch (error) {
-      console.error("Failed to decode token on login:", error);
+function readStoredToken() {
+  const stored = localStorage.getItem("token");
+  if (isTokenValid(stored)) {
+    return stored;
+  }
+  localStorage.removeItem("token");
+  return null;
+}
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(readStoredToken);
+  const [user, setUser] = useState(null);
+  const isAuthenticated = !!token;
+
+  useEffect(() => {
+    if (token) {
+      setUser(jwtDecode(token));
+    } else {
       setUser(null);
     }
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      return undefined;
+    }
+    const decoded = jwtDecode(token);
+    if (!decoded.exp) {
+      return undefined;
+    }
+    const msLeft = decoded.exp * 1000 - Date.now();
+    const timer = setTimeout(() => {
+      logout();
+    }, Math.max(msLeft, 0));
+    return () => clearTimeout(timer);
+  }, [token]);
+
+  const login = (newToken) => {
+    if (!isTokenValid(newToken)) {
+      return;
+    }
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
   };
 
   const getUserId = () => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-
-    try {
-      const decoded = jwtDecode(token);
-      return decoded.id || decoded._id || null;
-    } catch (err) {
-      console.error("Invalid token:", err);
+    const current = localStorage.getItem("token");
+    if (!isTokenValid(current)) {
       return null;
     }
+    const decoded = jwtDecode(current);
+    return decoded.id || decoded._id || null;
   };
 
   const logout = () => {

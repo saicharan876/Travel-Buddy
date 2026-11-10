@@ -1,31 +1,51 @@
-const express = require("express");
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
 const TripModel = require("./trip_model.js");
+const { formatTrip, escapeRegex } = require("./trip_helpers.js");
 
-const SECRET = "123";
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Create a new trip
+function viewerOf(req) {
+  return req.user ? req.user.id : null;
+}
+
+function readDates(start, end) {
+  const startDate = new Date(start);
+  if (isNaN(startDate)) {
+    return { error: "A valid start date is required" };
+  }
+  const endDate = end ? new Date(end) : startDate;
+  if (isNaN(endDate)) {
+    return { error: "End date is not a valid date" };
+  }
+  if (endDate < startDate) {
+    return { error: "End date cannot be before the start date" };
+  }
+  return { startDate, endDate };
+}
+
 async function createTrip(req, res) {
   try {
     const body = req.body;
-    const userId = req.user.id;
+    const dates = readDates(body.date, body.endDate);
+    if (dates.error) {
+      return res.status(400).json({ message: dates.error });
+    }
+
     const trip = await TripModel.create({
       destination: body.destination,
       description: body.description,
       location: body.location,
-      date: body.date,
-      genderPreference: body.genderPreference,
+      date: dates.startDate,
+      endDate: dates.endDate,
+      genderPreference: body.genderPreference || undefined,
       college: body.college,
-      blind: body.blind,
-      College: body.College,
-      Job: body.Job,
-      creator: userId,
+      blind: body.blind === true,
+      creator: req.user.id,
     });
 
     return res.status(201).json({
       message: "Trip created successfully",
-      trip,
+      trip: formatTrip(trip, req.user.id),
     });
   } catch (error) {
     console.error("Error creating trip:", error.message);
@@ -36,7 +56,6 @@ async function createTrip(req, res) {
   }
 }
 
-// Get a single trip by ID
 async function getTripById(req, res) {
   try {
     const tripId = req.params.id;
@@ -47,28 +66,13 @@ async function getTripById(req, res) {
 
     const trip = await TripModel.findById(tripId)
       .populate("creator", "name")
-      .populate("participants", "name"); 
+      .populate("participants", "name");
 
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
     }
 
-    trip.participants = (trip.participants || []).filter(Boolean);
-
-    // Return limited data for blind trips
-    if (trip.blind) {
-      return res.status(200).json({
-        _id: trip._id,
-        destination: trip.destination,
-        date: trip.date,
-        blind: true,
-        description: trip.description,
-        college: trip.college,
-        creator: trip.creator?.name || "Hidden",
-      });
-    }
-
-    return res.status(200).json(trip); 
+    return res.status(200).json(formatTrip(trip, viewerOf(req)));
   } catch (error) {
     console.error("Error fetching trip:", error.message);
     return res.status(500).json({
@@ -78,18 +82,20 @@ async function getTripById(req, res) {
   }
 }
 
-// Route: GET /trip — All Trips or by ?location=XYZ
+async function sendTripList(req, res, query) {
+  const trips = await TripModel.find(query).sort({ date: 1 });
+  const viewerId = viewerOf(req);
+  return res.status(200).json(trips.map((trip) => formatTrip(trip, viewerId)));
+}
+
 async function TripMainPage(req, res) {
   try {
     const { location } = req.query;
-
     const query = {};
     if (location) {
       query.location = location;
     }
-
-    const trips = await TripModel.find(query);
-    return res.status(200).json(trips);
+    return await sendTripList(req, res, query);
   } catch (error) {
     console.error("Error fetching trips:", error.message);
     return res.status(500).json({
@@ -99,51 +105,14 @@ async function TripMainPage(req, res) {
   }
 }
 
-async function AddParticipate(req, res) {
-  try {
-    const tripId = req.params.id;
-    const userId = new mongoose.Types.ObjectId(req.user.id);
-
-    const trip = await TripModel.findById(tripId);
-    if (!trip) {
-      return res.status(404).json({ message: "Trip not found" });
-    }
-
-    // Defensive null-check and avoid duplicates
-    trip.participants = trip.participants?.filter(Boolean) || [];
-
-    const alreadyJoined = trip.participants.some(
-      (p) => p?.toString() === userId.toString()
-    );
-
-    if (alreadyJoined) {
-      return res.status(400).json({ message: "User already joined this trip" });
-    }
-
-    trip.participants.push(userId);
-    await trip.save();
-
-    return res.status(200).json({ message: "Successfully joined the trip" });
-  } catch (error) {
-    console.error("Error joining trip:", error.message);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-// Route: GET /trip/college?college=XYZ
 async function TripCollegePage(req, res) {
   try {
     const { college } = req.query;
-
-    const selectedCollege = college || req.user?.college;
-
     const query = {};
-    if (selectedCollege) {
-      query.college = selectedCollege; 
+    if (college) {
+      query.college = college;
     }
-
-    const trips = await TripModel.find(query);
-    return res.status(200).json(trips);
+    return await sendTripList(req, res, query);
   } catch (error) {
     console.error("Error fetching college trips:", error.message);
     return res.status(500).json({
@@ -153,20 +122,14 @@ async function TripCollegePage(req, res) {
   }
 }
 
-// Route: GET /trip/location?location=XYZ
 async function TripLocationPage(req, res) {
   try {
     const { location } = req.query;
-
-    const selectedLocation = location || req.user?.location;
-
     const query = {};
-    if (selectedLocation) {
-      query.location = selectedLocation;
+    if (location) {
+      query.location = location;
     }
-
-    const trips = await TripModel.find(query);
-    return res.status(200).json(trips);
+    return await sendTripList(req, res, query);
   } catch (error) {
     console.error("Error fetching location trips:", error.message);
     return res.status(500).json({
@@ -176,24 +139,9 @@ async function TripLocationPage(req, res) {
   }
 }
 
-// Route: GET /trip/blind
 async function BlindTrips(req, res) {
   try {
-    const blindTrips = await TripModel.find({ blind: true });
-
-    if (!blindTrips || blindTrips.length === 0) {
-      return res.status(404).json({ message: "No blind trips found" });
-    }
-
-    const tripList = blindTrips.map((trip) => ({
-      _id: trip._id,
-      destination: trip.destination,
-      date: trip.date,
-      blind: true,
-      description: trip.description,
-    }));
-
-    return res.status(200).json(tripList);
+    return await sendTripList(req, res, { blind: true });
   } catch (error) {
     console.error("Error fetching blind trips:", error.message);
     return res.status(500).json({
@@ -203,24 +151,119 @@ async function BlindTrips(req, res) {
   }
 }
 
-async function DeleteTrip(req, res) {
+async function MatchTrips(req, res) {
+  try {
+    const { location, start, end, goal } = req.query;
+    const dates = readDates(start, end);
+    if (dates.error) {
+      return res.status(400).json({ message: dates.error });
+    }
+    const { startDate, endDate } = dates;
+
+    const conditions = [
+      { date: { $lte: endDate } },
+      {
+        $or: [
+          { endDate: { $gte: startDate } },
+          { endDate: null, date: { $gte: startDate } },
+        ],
+      },
+    ];
+
+    if (location && location.trim()) {
+      const place = new RegExp(escapeRegex(location.trim()), "i");
+      conditions.push({ $or: [{ location: place }, { destination: place }] });
+    }
+
+    if (goal && goal.trim()) {
+      conditions.push({ description: new RegExp(escapeRegex(goal.trim()), "i") });
+    }
+
+    const trips = await TripModel.find({ $and: conditions });
+    const viewerId = viewerOf(req);
+
+    const results = trips.map((trip) => {
+      const tripStart = new Date(trip.date);
+      const tripEnd = trip.endDate ? new Date(trip.endDate) : tripStart;
+      const overlapStart = tripStart > startDate ? tripStart : startDate;
+      const overlapEnd = tripEnd < endDate ? tripEnd : endDate;
+      const data = formatTrip(trip, viewerId);
+      data.overlapDays = Math.floor((overlapEnd - overlapStart) / DAY_MS) + 1;
+      return data;
+    });
+
+    results.sort((a, b) => {
+      if (b.overlapDays !== a.overlapDays) {
+        return b.overlapDays - a.overlapDays;
+      }
+      return new Date(a.date) - new Date(b.date);
+    });
+
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error("Error matching trips:", error.message);
+    return res.status(500).json({
+      message: "Failed to match trips",
+      error: error.message,
+    });
+  }
+}
+
+async function AddParticipate(req, res) {
   try {
     const tripId = req.params.id;
-    const userId = req.user.id;
 
+    if (!mongoose.Types.ObjectId.isValid(tripId)) {
+      return res.status(400).json({ message: "Invalid trip ID" });
+    }
+
+    const userId = req.user.id;
     const trip = await TripModel.findById(tripId);
+
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
     }
 
-    if (trip.creator.toString() !== userId) {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to delete this trip" });
+    if (trip.creator.toString() === userId) {
+      return res.status(400).json({ message: "You created this trip, so you are already in it" });
+    }
+
+    trip.participants = trip.participants.filter(Boolean);
+    const alreadyJoined = trip.participants.some((p) => p.toString() === userId);
+
+    if (alreadyJoined) {
+      return res.status(400).json({ message: "User already joined this trip" });
+    }
+
+    trip.participants.push(new mongoose.Types.ObjectId(userId));
+    await trip.save();
+
+    return res.status(200).json({ message: "Successfully joined the trip" });
+  } catch (error) {
+    console.error("Error joining trip:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function DeleteTrip(req, res) {
+  try {
+    const tripId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(tripId)) {
+      return res.status(400).json({ message: "Invalid trip ID" });
+    }
+
+    const trip = await TripModel.findById(tripId);
+
+    if (!trip) {
+      return res.status(404).json({ message: "Trip not found" });
+    }
+
+    if (trip.creator.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized to delete this trip" });
     }
 
     await trip.deleteOne();
-
     return res.status(200).json({ message: "Trip deleted successfully" });
   } catch (error) {
     console.error("Error deleting trip:", error.message);
@@ -234,7 +277,12 @@ async function DeleteTrip(req, res) {
 async function LeaveTrip(req, res) {
   try {
     const tripId = req.params.id;
-    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    if (!mongoose.Types.ObjectId.isValid(tripId)) {
+      return res.status(400).json({ message: "Invalid trip ID" });
+    }
+
+    const userId = req.user.id;
     const trip = await TripModel.findById(tripId);
 
     if (!trip) {
@@ -242,62 +290,56 @@ async function LeaveTrip(req, res) {
     }
 
     const originalLength = trip.participants.length;
-
-    trip.participants = trip.participants.filter(
-      (p) => p && p.toString() !== userId.toString()
-    );
+    trip.participants = trip.participants.filter((p) => p && p.toString() !== userId);
 
     if (trip.participants.length === originalLength) {
-      return res
-        .status(403)
-        .json({ message: "You are not a participant of this trip" });
+      return res.status(403).json({ message: "You are not a participant of this trip" });
     }
 
     await trip.save();
     return res.status(200).json({ message: "You have left the trip" });
   } catch (error) {
     console.error("Error leaving trip:", error.message);
-    return res
-      .status(500)
-      .json({ message: "Failed to leave trip", error: error.message });
+    return res.status(500).json({ message: "Failed to leave trip", error: error.message });
   }
 }
 
 async function editTrip(req, res) {
   try {
     const tripId = req.params.id;
-    const userId = req.user.id;
-    const {
-      destination,
-      location,
-      description,
-      date,
-      genderPreference,
-      blind,
-    } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(tripId)) {
+      return res.status(400).json({ message: "Invalid trip ID" });
+    }
+
+    const { destination, location, description, college, date, endDate, genderPreference, blind } = req.body;
     const trip = await TripModel.findById(tripId);
 
     if (!trip) {
       return res.status(404).json({ message: "Trip not found" });
     }
 
-    
-    if (trip.creator.toString() !== userId) {
+    if (trip.creator.toString() !== req.user.id) {
       return res.status(403).json({ message: "You are not the creator of this trip" });
     }
 
-    
+    const dates = readDates(date || trip.date, endDate || trip.endDate);
+    if (dates.error) {
+      return res.status(400).json({ message: dates.error });
+    }
+
     trip.destination = destination || trip.destination;
     trip.location = location || trip.location;
     trip.description = description || trip.description;
-    trip.date = date || trip.date;
+    trip.college = college || trip.college;
+    trip.date = dates.startDate;
+    trip.endDate = dates.endDate;
     trip.genderPreference = genderPreference || trip.genderPreference;
-    trip.blind = typeof blind === 'boolean' ? blind : trip.blind;
+    trip.blind = typeof blind === "boolean" ? blind : trip.blind;
 
     await trip.save();
 
-    return res.status(200).json({ message: "Trip updated successfully", trip });
+    return res.status(200).json({ message: "Trip updated successfully", trip: formatTrip(trip, req.user.id) });
   } catch (error) {
     console.error("Error updating trip:", error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -311,6 +353,7 @@ module.exports = {
   TripCollegePage,
   TripLocationPage,
   BlindTrips,
+  MatchTrips,
   AddParticipate,
   DeleteTrip,
   LeaveTrip,

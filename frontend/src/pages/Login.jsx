@@ -29,10 +29,9 @@ export default function Login() {
     setError('');
     try {
       const res = await axios.post('http://localhost:5000/login', form);
-      console.log("Login token:", res.data.token); // Debug
       login(res.data.token); // This sets token and user in context
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.msg || err.response?.data?.message || 'Login failed. Please check your credentials.');
       setLoading(false);
     }
   };

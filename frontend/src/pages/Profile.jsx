@@ -8,7 +8,6 @@ function Profile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [photoInput, setPhotoInput] = useState("");
-  const [setImageError] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -47,17 +46,16 @@ function Profile() {
         },
       }));
       setPhotoInput("");
-      setImageError(false);
     } catch (err) {
       console.error("Error updating photo:", err);
-      alert("Failed to update profile photo");
+      alert(err.response?.data?.error || "Failed to update profile photo");
     }
   };
 
   if (loading) return <div>Loading...</div>;
   if (!userData) return <div>User not found.</div>;
 
-  const { user, tripsCreated = [], tripsJoined = [], blogs = [] } = userData;
+  const { user, isOwnProfile, tripsCreated = [], tripsJoined = [], blogs = [] } = userData;
 
   return (
     <div className="profile-container">
@@ -80,8 +78,9 @@ function Profile() {
 
         <div className="profile-info">
           <h2>{user.name}</h2>
-          <p>{user.email}</p>
+          {user.email && <p>{user.email}</p>}
 
+          {isOwnProfile && (
           <div className="profile-photo-upload">
             <input
               type="text"
@@ -117,6 +116,7 @@ function Profile() {
               Update Photo
             </button>
           </div>
+          )}
         </div>
       </div>
 
